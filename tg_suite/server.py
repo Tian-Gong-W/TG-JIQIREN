@@ -1,12 +1,14 @@
 import os
 import hmac
 import re
+import tempfile
 import shutil
 import zipfile
 import subprocess
 import asyncio
 import time
 from datetime import datetime
+from pathlib import Path
 from typing import List, Dict, Optional, Any
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -97,6 +99,9 @@ ACCOUNTS_DIR = os.path.join(BASE_DIR, "accounts")
 SESSIONS_DIR = os.path.join(BASE_DIR, "sessions")
 EXPORTS_DIR = os.path.join(BASE_DIR, "exports")
 UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
+MAX_UPLOAD_BYTES = int(os.getenv("TG_MAX_SESSION_UPLOAD_BYTES", str(200 * 1024 * 1024)))
+MAX_ZIP_MEMBERS = int(os.getenv("TG_MAX_SESSION_ZIP_MEMBERS", "2000"))
+MAX_EXTRACTED_BYTES = int(os.getenv("TG_MAX_SESSION_EXTRACTED_BYTES", str(512 * 1024 * 1024)))
 
 for d in [ACCOUNTS_DIR, SESSIONS_DIR, EXPORTS_DIR, UPLOADS_DIR]:
     os.makedirs(d, exist_ok=True)
@@ -148,6 +153,65 @@ async def get_all_active_clients() -> List[TelegramClient]:
             except Exception as e:
                 print(f"[!] 启动账号 [{acc_name}] 失败: {e}")
     return clients
+
+def _safe_extract_zip(zip_path: Path, destination: Path) -> None:
+    """安全解压 TData ZIP，阻断 Zip Slip、符号链接和压缩炸弹。"""
+    extracted_bytes = 0
+    with zipfile.ZipFile(zip_path) as archive:
+        members = archive.infolist()
+        if len(members) > MAX_ZIP_MEMBERS:
+            raise ValueError("ZIP 文件包含过多条目")
+
+        destination = destination.resolve()
+        for member in members:
+            member_path = (destination / member.filename).resolve()
+            if member_path != destination and destination not in member_path.parents:
+                raise ValueError("ZIP 包含非法路径")
+            file_type = (member.external_attr >> 16) & 0o170000
+            if file_type == 0o120000:
+                raise ValueError("ZIP 不允许包含符号链接")
+            extracted_bytes += member.file_size
+            if extracted_bytes > MAX_EXTRACTED_BYTES:
+                raise ValueError("ZIP 解压后超过大小限制")
+
+        for member in members:
+            member_path = destination / member.filename
+            if member.is_dir():
+                member_path.mkdir(parents=True, exist_ok=True)
+                continue
+            member_path.parent.mkdir(parents=True, exist_ok=True)
+            with archive.open(member) as src, member_path.open("wb") as dst:
+                shutil.copyfileobj(src, dst, length=1024 * 1024)
+
+
+def _find_tdata_root(extracted: Path) -> Optional[Path]:
+    """只接受根目录或一层包装目录中的 tdata/key_datas 结构。"""
+    candidates = [extracted / "tdata"]
+    candidates.extend(p / "tdata" for p in extracted.iterdir() if p.is_dir())
+    for candidate in candidates:
+        if candidate.is_dir() and (candidate / "key_datas").exists():
+            return candidate
+
+    key_datas = extracted / "key_datas"
+    if key_datas.is_file():
+        return extracted
+    for child in extracted.iterdir():
+        if child.is_dir() and (child / "key_datas").is_file():
+            return child
+    return None
+
+
+def _copy_session_assets(source: Path, destination: Path) -> None:
+    """复制并收紧 TData 文件权限，避免把 ZIP 中其他文件带入账号目录。"""
+    if destination.exists():
+        shutil.rmtree(destination)
+    shutil.copytree(source, destination)
+    for path in [destination, *destination.rglob("*")]:
+        if path.is_dir():
+            path.chmod(0o700)
+        else:
+            path.chmod(0o600)
+
 
 # ================================
 # 1. 仪表盘统计 API
@@ -211,37 +275,59 @@ async def import_account(
     _: str = Depends(require_admin),
 ):
     validate_account_name(account_name)
-    target_folder = os.path.join(ACCOUNTS_DIR, account_name)
-    if os.path.exists(target_folder):
+    if not file.filename or not file.filename.lower().endswith(".zip"):
+        raise HTTPException(status_code=400, detail="只支持包含 TData 的 ZIP 文件")
+
+    proxy_value = (proxy or "").strip()
+    if len(proxy_value) > 256 or any(char in proxy_value for char in "\r\n"):
+        raise HTTPException(status_code=400, detail="代理配置格式无效")
+
+    target_folder = Path(ACCOUNTS_DIR) / account_name
+    if target_folder.exists():
         raise HTTPException(status_code=400, detail="该账号名称已存在，请换一个名称")
 
-    os.makedirs(target_folder, exist_ok=True)
-    temp_file = os.path.join(target_folder, file.filename)
+    try:
+        with tempfile.TemporaryDirectory(prefix="session-import-", dir=UPLOADS_DIR) as temp_dir:
+            temp_root = Path(temp_dir)
+            zip_path = temp_root / "upload.zip"
+            received_bytes = 0
+            with zip_path.open("wb") as destination:
+                while chunk := await file.read(1024 * 1024):
+                    received_bytes += len(chunk)
+                    if received_bytes > MAX_UPLOAD_BYTES:
+                        raise ValueError("上传文件超过大小限制")
+                    destination.write(chunk)
 
-    with open(temp_file, "wb") as f:
-        content = await file.read()
-        f.write(content)
+            extracted_root = temp_root / "extracted"
+            extracted_root.mkdir()
+            _safe_extract_zip(zip_path, extracted_root)
+            tdata_root = _find_tdata_root(extracted_root)
+            if tdata_root is None:
+                raise ValueError("ZIP 中未找到有效的 TData/key_datas 结构")
 
-    if file.filename.endswith(".zip"):
-        with zipfile.ZipFile(temp_file, 'r') as zip_ref:
-            zip_ref.extractall(target_folder)
-        os.remove(temp_file)
+            staged_account = temp_root / "account"
+            staged_account.mkdir()
+            _copy_session_assets(tdata_root, staged_account / "tdata")
+            if proxy_value:
+                proxy_path = staged_account / "proxy.txt"
+                proxy_path.write_text(proxy_value, encoding="utf-8")
+                proxy_path.chmod(0o600)
 
-        inner_tdata = os.path.join(target_folder, "tdata")
-        if not os.path.exists(inner_tdata):
-            if os.path.exists(os.path.join(target_folder, "key_datas")):
-                temp_tdata = os.path.join(target_folder, "_tdata")
-                os.makedirs(temp_tdata, exist_ok=True)
-                for item in os.listdir(target_folder):
-                    if item != "_tdata":
-                        shutil.move(os.path.join(target_folder, item), os.path.join(temp_tdata, item))
-                os.rename(temp_tdata, inner_tdata)
+            target_folder.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(staged_account, target_folder)
+    except HTTPException:
+        raise
+    except (OSError, ValueError, zipfile.BadZipFile) as exc:
+        raise HTTPException(status_code=400, detail=f"会话资产导入失败: {exc}") from exc
+    finally:
+        await file.close()
 
-    if proxy:
-        with open(os.path.join(target_folder, "proxy.txt"), "w", encoding="utf-8") as f:
-            f.write(proxy.strip())
-
-    return {"status": "success", "message": f"账号 [{account_name}] 导入就绪"}
+    return {
+        "status": "success",
+        "message": f"账号 [{account_name}] 会话资产恢复就绪",
+        "has_tdata": True,
+        "session_ready": False,
+    }
 
 @app.post("/api/accounts/launch-desktop")
 async def launch_desktop(

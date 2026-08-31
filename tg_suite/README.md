@@ -68,6 +68,12 @@ python server.py
 
 不要把真实 API Key、Telegram session、TData、代理密码、数据库或 `.env` 文件提交到 Git。项目已通过 `.gitignore` 排除常见运行时和敏感文件。
 
+### 账号会话资产恢复
+
+“导入新账号”功能用于恢复 Telegram 会话资产，不恢复受众数据库。上传文件必须是 ZIP，并且包内需要包含 `tdata/key_datas`，或一层目录包装下的同等结构。服务端会先写入临时目录，限制上传大小、条目数量和解压总大小，阻止路径穿越与符号链接，然后仅复制有效的 TData 目录到 `accounts/<account_name>/tdata`；导入失败时会自动清理临时文件，不会留下半成品账号目录。
+
+该功能要求管理员 API Key。恢复 TData 后，首次使用“网页查验证码”或其他 Telethon 操作时，服务会按当前代理配置转换/生成对应的 Telethon Session。TData、Session 和代理配置都是高敏感资产，应只在受信任的本机或隔离服务器上操作。
+
 ## 快速使用说明
 
 ### 1. 安装依赖环境
