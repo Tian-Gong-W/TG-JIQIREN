@@ -368,6 +368,38 @@
   </div>
 
   <script>
+    const API_TOKEN_KEY = 'tg_api_token';
+    let tokenPrompted = false;
+
+    function getApiToken() {
+      let token = sessionStorage.getItem(API_TOKEN_KEY);
+      if (!token && !tokenPrompted) {
+        tokenPrompted = true;
+        token = window.prompt('请输入 TG_OPERATOR_API_KEY 或 TG_ADMIN_API_KEY：');
+        if (token) sessionStorage.setItem(API_TOKEN_KEY, token.trim());
+      }
+      return token || '';
+    }
+
+    async function apiFetch(input, init = {}) {
+      const headers = new Headers(init.headers || {});
+      const token = getApiToken();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+
+      let res = await window.fetch(input, { ...init, headers });
+      if (res.status === 401) {
+        sessionStorage.removeItem(API_TOKEN_KEY);
+        tokenPrompted = false;
+        const replacement = window.prompt('API Key 无效或已过期，请重新输入：');
+        if (replacement) {
+          sessionStorage.setItem(API_TOKEN_KEY, replacement.trim());
+          headers.set('Authorization', `Bearer ${replacement.trim()}`);
+          res = await window.fetch(input, { ...init, headers });
+        }
+      }
+      return res;
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(el => {
@@ -404,7 +436,7 @@
     }
 
     async function loadDashboardStats() {
-      const res = await fetch('/api/dashboard/stats');
+      const res = await apiFetch('/api/dashboard/stats');
       const d = await res.json();
       document.getElementById('statAccounts').textContent = d.accounts_count;
       document.getElementById('statTotalUsers').textContent = d.total_users;
@@ -413,7 +445,7 @@
     }
 
     async function loadAccounts() {
-      const res = await fetch('/api/accounts');
+      const res = await apiFetch('/api/accounts');
       const data = await res.json();
       const grid = document.getElementById('accountsGrid');
       const scrapeSelect = document.getElementById('scrapeAccountSelect');
@@ -466,7 +498,7 @@
       const fd = new FormData();
       fd.append('account_name', name);
       fd.append('portable_exe_path', exe);
-      const res = await fetch('/api/accounts/launch-desktop', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/accounts/launch-desktop', { method: 'POST', body: fd });
       const data = await res.json();
       alert(data.message || data.detail);
     }
@@ -479,7 +511,7 @@
 
       const fd = new FormData();
       fd.append('account_name', name);
-      const res = await fetch('/api/accounts/get-code', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/accounts/get-code', { method: 'POST', body: fd });
       const d = await res.json();
       if (d.status === 'success' && d.messages.length > 0) {
         box.innerHTML = d.messages.map(m => `
@@ -496,7 +528,7 @@
     async function checkSpambot(name) {
       const fd = new FormData();
       fd.append('account_name', name);
-      const res = await fetch('/api/accounts/check-spambot', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/accounts/check-spambot', { method: 'POST', body: fd });
       const d = await res.json();
       alert(`[${name}] 检测结果:\n${d.detail}`);
     }
@@ -505,13 +537,13 @@
       if (!confirm(`确认让账号 [${name}] 退出所有非自建的群组和频道？`)) return;
       const fd = new FormData();
       fd.append('account_name', name);
-      const res = await fetch('/api/accounts/batch-leave', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/accounts/batch-leave', { method: 'POST', body: fd });
       const d = await res.json();
       alert(`退出完成！成功退出 ${d.stats?.success || 0} 个群组。`);
     }
 
     async function loadUsers() {
-      const res = await fetch('/api/scraper/users?limit=200');
+      const res = await apiFetch('/api/scraper/users?limit=200');
       const users = await res.json();
       const tbody = document.getElementById('userTableBody');
       tbody.innerHTML = '';
@@ -531,7 +563,7 @@
     }
 
     async function loadLeads() {
-      const res = await fetch('/api/pro/interceptor/leads');
+      const res = await apiFetch('/api/pro/interceptor/leads');
       const leads = await res.json();
       const tbody = document.getElementById('leadsTableBody');
       tbody.innerHTML = '';
@@ -554,7 +586,7 @@
       const text = document.getElementById('spintaxInput').value;
       const fd = new FormData();
       fd.append('template', text);
-      const res = await fetch('/api/sender/preview-spintax', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/sender/preview-spintax', { method: 'POST', body: fd });
       const d = await res.json();
       const box = document.getElementById('spintaxPreviewBox');
       box.classList.remove('hidden');
@@ -564,7 +596,7 @@
     document.getElementById('importForm').onsubmit = async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
-      const res = await fetch('/api/accounts/import', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/accounts/import', { method: 'POST', body: fd });
       if (res.ok) {
         document.getElementById('importModal').classList.add('hidden');
         e.target.reset();
@@ -580,7 +612,7 @@
       e.preventDefault();
       const fd = new FormData(e.target);
       alert('正在启动采集任务，请稍候...');
-      const res = await fetch('/api/scraper/start', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/scraper/start', { method: 'POST', body: fd });
       const d = await res.json();
       if (res.ok) {
         alert(d.message);
@@ -594,7 +626,7 @@
       e.preventDefault();
       const fd = new FormData(e.target);
       alert('正在启动矩阵轮换拉群任务，请稍候...');
-      const res = await fetch('/api/inviter/start', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/inviter/start', { method: 'POST', body: fd });
       const d = await res.json();
       if (res.ok) {
         alert(`拉群任务完成！成功拉入 ${d.stats.success} 人。`);
@@ -607,7 +639,7 @@
       e.preventDefault();
       const fd = new FormData(e.target);
       alert('正在启动多号私信群发任务，请稍候...');
-      const res = await fetch('/api/sender/start-dm', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/sender/start-dm', { method: 'POST', body: fd });
       const d = await res.json();
       if (res.ok) {
         alert(`私信群发完成！成功触达 ${d.stats.success} 人。`);
@@ -620,7 +652,7 @@
       e.preventDefault();
       const fd = new FormData(e.target);
       alert('正在启动频道内容克隆搬运，请稍候...');
-      const res = await fetch('/api/pro/clone-channel', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/pro/clone-channel', { method: 'POST', body: fd });
       const d = await res.json();
       if (res.ok) {
         alert(`克隆完成！成功搬运 ${d.stats.success} 条消息。`);

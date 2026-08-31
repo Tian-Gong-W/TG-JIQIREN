@@ -301,4 +301,5 @@ def save_intercepted_lead(lead_data: Dict[str, Any]):
     conn.commit()
     conn.close()
 
+init_db()
 init_leads_table()

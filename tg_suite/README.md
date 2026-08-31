@@ -49,6 +49,25 @@ tg_suite/
 * **频道新帖抢评**：监听目标频道发布新帖，毫秒级在关联讨论组抢发第一条引流评论。
 * **通讯录与 Stories 故事**：批量清空/导入联系人，自动发布 24 小时动态故事。
 
+## API 认证与授权配置
+
+控制台默认要求所有 `/api/*` 请求携带 Bearer API Key。系统支持两个角色：`TG_ADMIN_API_KEY` 可访问全部接口，`TG_OPERATOR_API_KEY` 仅可访问统计、账号列表、受众查询/导出、Spintax 预览和线索查看等低风险接口。账号导入、读取验证码、桌面端启动、批量退群、采集任务、拉群、私信和频道克隆均需要管理员密钥。
+
+生产环境必须设置 `TG_ENV=production`、`TG_ADMIN_API_KEY`、`TG_API_ID` 和 `TG_API_HASH`。建议使用密码管理器或部署平台的 Secret 注入机制生成随机密钥，例如：
+
+```bash
+export TG_ENV=production
+export TG_ADMIN_API_KEY="$(openssl rand -hex 32)"
+export TG_OPERATOR_API_KEY="$(openssl rand -hex 32)"
+export TG_API_ID="你的 Telegram API ID"
+export TG_API_HASH="你的 Telegram API Hash"
+python server.py
+```
+
+只有在隔离的本机开发环境中，才可以显式设置 `TG_AUTH_DISABLED=true` 旁路认证；该配置在 `TG_ENV=production` 时会被拒绝。前端首次调用 API 时会在当前浏览器会话中提示输入 API Key，并保存在 `sessionStorage`，关闭浏览器后自动清除。
+
+不要把真实 API Key、Telegram session、TData、代理密码、数据库或 `.env` 文件提交到 Git。项目已通过 `.gitignore` 排除常见运行时和敏感文件。
+
 ## 快速使用说明
 
 ### 1. 安装依赖环境

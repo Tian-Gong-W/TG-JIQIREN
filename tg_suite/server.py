@@ -1,11 +1,15 @@
 import os
+import hmac
+import re
 import shutil
 import zipfile
 import subprocess
 import asyncio
 import time
+from datetime import datetime
 from typing import List, Dict, Optional, Any
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, BackgroundTasks
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from pydantic import BaseModel
@@ -28,7 +32,65 @@ try:
 except ImportError:
     pass
 
-app = FastAPI(title="Telegram 一体化自动化运营控制台")
+security = HTTPBearer(auto_error=False)
+AUTH_DISABLED = os.getenv("TG_AUTH_DISABLED", "false").lower() == "true"
+TG_ENV = os.getenv("TG_ENV", "development").lower()
+ADMIN_API_KEY = os.getenv("TG_ADMIN_API_KEY", "")
+OPERATOR_API_KEY = os.getenv("TG_OPERATOR_API_KEY", "")
+
+if AUTH_DISABLED and TG_ENV == "production":
+    raise RuntimeError("TG_AUTH_DISABLED=true 禁止用于 production 环境")
+if TG_ENV == "production" and not ADMIN_API_KEY:
+    raise RuntimeError("production 环境必须设置 TG_ADMIN_API_KEY")
+
+ACCOUNT_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
+
+
+def validate_account_name(account_name: str) -> str:
+    """只允许安全的单段账号标识，阻断路径遍历和分隔符。"""
+    if not ACCOUNT_NAME_RE.fullmatch(account_name):
+        raise HTTPException(status_code=400, detail="账号名称格式无效")
+    return account_name
+
+
+def require_auth(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> str:
+    """验证 Bearer API Key，并返回 admin 或 operator 角色。"""
+    if AUTH_DISABLED and TG_ENV != "production":
+        return "admin"
+    if not credentials or credentials.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=401,
+            detail="需要 Bearer API Key",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = credentials.credentials
+    if ADMIN_API_KEY and hmac.compare_digest(token, ADMIN_API_KEY):
+        return "admin"
+    if OPERATOR_API_KEY and hmac.compare_digest(token, OPERATOR_API_KEY):
+        return "operator"
+    raise HTTPException(
+        status_code=401,
+        detail="API Key 无效",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+def require_admin(role: str = Depends(require_auth)) -> str:
+    """限制账号导入、账号操作和主动营销等高风险接口。"""
+    if role != "admin":
+        raise HTTPException(status_code=403, detail="需要管理员权限")
+    return role
+
+
+app = FastAPI(
+    title="Telegram 一体化运营控制台",
+    dependencies=[Depends(require_auth)],
+    docs_url=None if TG_ENV == "production" else "/docs",
+    redoc_url=None if TG_ENV == "production" else "/redoc",
+)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ACCOUNTS_DIR = os.path.join(BASE_DIR, "accounts")
@@ -39,8 +101,11 @@ UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
 for d in [ACCOUNTS_DIR, SESSIONS_DIR, EXPORTS_DIR, UPLOADS_DIR]:
     os.makedirs(d, exist_ok=True)
 
-DEFAULT_API_ID = 2040
-DEFAULT_API_HASH = "b18441a1ff607e10a989891a5462e627"
+try:
+    DEFAULT_API_ID = int(os.getenv("TG_API_ID", "0"))
+except ValueError as exc:
+    raise RuntimeError("TG_API_ID 必须是整数") from exc
+DEFAULT_API_HASH = os.getenv("TG_API_HASH", "")
 
 # 全局任务与监听器状态
 ACTIVE_INTERCEPTOR = None
@@ -50,6 +115,9 @@ ACTIVE_POSTER = None
 # 辅助函数：获取客户端实例
 # ================================
 def get_client_for_account(acc_name: str) -> TelegramClient:
+    validate_account_name(acc_name)
+    if DEFAULT_API_ID <= 0 or not DEFAULT_API_HASH:
+        raise RuntimeError("未配置 TG_API_ID/TG_API_HASH")
     acc_path = os.path.join(ACCOUNTS_DIR, acc_name)
     proxy_params = None
     proxy_file = os.path.join(acc_path, "proxy.txt")
@@ -139,8 +207,10 @@ async def list_accounts():
 async def import_account(
     file: UploadFile = File(...),
     account_name: str = Form(...),
-    proxy: Optional[str] = Form(None)
+    proxy: Optional[str] = Form(None),
+    _: str = Depends(require_admin),
 ):
+    validate_account_name(account_name)
     target_folder = os.path.join(ACCOUNTS_DIR, account_name)
     if os.path.exists(target_folder):
         raise HTTPException(status_code=400, detail="该账号名称已存在，请换一个名称")
@@ -174,7 +244,12 @@ async def import_account(
     return {"status": "success", "message": f"账号 [{account_name}] 导入就绪"}
 
 @app.post("/api/accounts/launch-desktop")
-async def launch_desktop(account_name: str = Form(...), portable_exe_path: str = Form(...)):
+async def launch_desktop(
+    account_name: str = Form(...),
+    portable_exe_path: str = Form(...),
+    _: str = Depends(require_admin),
+):
+    validate_account_name(account_name)
     acc_path = os.path.join(ACCOUNTS_DIR, account_name)
     tdata_path = os.path.join(acc_path, "tdata")
     if not os.path.exists(tdata_path):
@@ -193,7 +268,11 @@ async def launch_desktop(account_name: str = Form(...), portable_exe_path: str =
         raise HTTPException(status_code=500, detail=f"启动失败: {str(e)}")
 
 @app.post("/api/accounts/get-code")
-async def get_login_code(account_name: str = Form(...)):
+async def get_login_code(
+    account_name: str = Form(...),
+    _: str = Depends(require_admin),
+):
+    validate_account_name(account_name)
     acc_path = os.path.join(ACCOUNTS_DIR, account_name)
     tdata_path = os.path.join(acc_path, "tdata")
     if not os.path.exists(tdata_path):
@@ -233,7 +312,10 @@ async def get_login_code(account_name: str = Form(...)):
         return {"status": "error", "message": str(e)}
 
 @app.post("/api/accounts/check-spambot")
-async def check_spambot(account_name: str = Form(...)):
+async def check_spambot(
+    account_name: str = Form(...),
+    _: str = Depends(require_admin),
+):
     try:
         client = get_client_for_account(account_name)
         await client.start()
@@ -245,7 +327,10 @@ async def check_spambot(account_name: str = Form(...)):
         return {"status": "error", "detail": f"查询失败: {str(e)}"}
 
 @app.post("/api/accounts/batch-leave")
-async def batch_leave_chats(account_name: str = Form(...)):
+async def batch_leave_chats(
+    account_name: str = Form(...),
+    _: str = Depends(require_admin),
+):
     try:
         client = get_client_for_account(account_name)
         await client.start()
@@ -265,7 +350,8 @@ async def start_scraping(
     target_link: str = Form(...),
     scrape_mode: str = Form(...),  # members, active_chatters, commenters
     limit: int = Form(1000),
-    days_lookback: int = Form(7)
+    days_lookback: int = Form(7),
+    _: str = Depends(require_admin),
 ):
     try:
         client = get_client_for_account(account_name)
@@ -311,7 +397,8 @@ async def start_inviting(
     target_group: str = Form(...),
     tag_filter: Optional[str] = Form(None),
     max_limit: int = Form(100),
-    max_per_account: int = Form(15)
+    max_per_account: int = Form(15),
+    _: str = Depends(require_admin),
 ):
     clients = await get_all_active_clients()
     if not clients:
@@ -340,7 +427,8 @@ async def start_mass_dm(
     template: str = Form(...),
     tag_filter: Optional[str] = Form(None),
     max_limit: int = Form(50),
-    max_per_account: int = Form(20)
+    max_per_account: int = Form(20),
+    _: str = Depends(require_admin),
 ):
     clients = await get_all_active_clients()
     if not clients:
@@ -368,7 +456,8 @@ async def clone_channel(
     target_channel: str = Form(...),
     limit: int = Form(200),
     replace_old: Optional[str] = Form(None),
-    replace_new: Optional[str] = Form(None)
+    replace_new: Optional[str] = Form(None),
+    _: str = Depends(require_admin),
 ):
     try:
         client = get_client_for_account(account_name)
