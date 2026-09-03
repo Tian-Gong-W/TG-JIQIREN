@@ -1,85 +1,79 @@
-# Telegram 自动化全功能运营套件 (Complete Suite)
+# Telegram Suite
 
-本项目是基于 Python 异步架构（Telethon / MTProto）构建的一站式 Telegram 自动化运营与营销套件。
+基于 Python、FastAPI、Telethon 的 Telegram 管理与自动化控制台。
 
-## 完整工程目录结构
+## 工程结构
+
 ```text
 tg_suite/
-├── requirements.txt         # 依赖环境清单
-├── database.py              # SQLite 数据库模型与受众/商机治理中枢
-│
-├── run_scraper.py           # 【模块 1】高精度受众采集与数据清洗交互终端
-├── run_marketing.py         # 【模块 2】多账号矩阵轮换拉群与 Spintax 群发终端
-├── run_pro_tools.py         # 【模块 3】PRO 工具（频道克隆 + 关键词商机实时拦截）
-├── run_operations.py        # 【模块 4】日常运维（批量退群 + @SpamBot 查风控 + 群聊定时广播 + 抢评 + Stories）
-│
+├── server.py              # FastAPI Web API / 控制台服务
+├── database.py            # SQLite 数据层
 ├── core/
-│   ├── scraper.py           # 群成员/发言活跃者/讨论组评论区采集引擎
-│   ├── inviter.py           # 矩阵交叉轮询拉群引擎 (含熔断换号机制)
-│   ├── sender.py            # Spintax 语法解析与多账号私信/自动应答引擎
-│   ├── cloner.py            # 频道正序克隆搬运与水印清洗引擎
-│   ├── interceptor.py       # 全网群组关键词实时监听与商机转发引擎
-│   ├── account_actions.py   # 批量退群/退频道与 @SpamBot 自动风控查询
-│   ├── broadcaster.py       # 群聊定时循环广播 (Auto-Poster) 与频道新帖自动抢评
-│   └── contacts_stories.py  # 通讯录批量导入/清空与 Stories 动态故事发布
-│
-├── sessions/                # 账号会话文件存储目录
-└── exports/                 # 采集结果 CSV 导出目录
+│   ├── config.py          # API 凭据读取、Session 名称校验与路径保护
+│   ├── scraper.py         # 数据采集模块
+│   ├── inviter.py         # 群组成员操作模块
+│   ├── sender.py          # 消息模板与发送模块
+│   ├── cloner.py          # 内容复制模块
+│   ├── interceptor.py     # 关键词事件监听模块
+│   ├── account_actions.py # 账号维护模块
+│   ├── broadcaster.py     # 定时发布模块
+│   └── contacts_stories.py# 联系人与 Stories 模块
+├── static/index.html      # Web 控制台
+├── tests/                 # 不依赖 Telegram 登录态的测试
+└── run_*.py               # 四个交互式入口
 ```
 
-## 四大核心交互终端运行指南
+## 配置
 
-### 1. 数据采集与清洗终端 (`python run_scraper.py`)
-* **全量群成员采集**：自动过滤机器人与注销账号。
-* **活跃发言者提取（核心功能）**：回溯群内最近 N 天历史聊天记录，精准提取发过言的真实活跃客户，记录发言频次与最新消息摘要。
-* **频道评论区抓取**：自动定位频道绑定的讨论组，提取在帖子下留言互动的用户。
-
-### 2. 营销矩阵与多号轮换终端 (`python run_marketing.py`)
-* **矩阵交叉轮询拉群**：多账号交替拉人进群，单号达到阈值（如 15 人）自动休眠并切换下一账号，彻底杜绝单号封禁。
-* **Spintax 智能私信群发**：支持 `{您好|Hi|Hello}` 嵌套语法与 `{name}`、`{username}`、`{random_emoji}` 动态变量替换。
-
-### 3. PRO 高级工具终端 (`python run_pro_tools.py`)
-* **频道内容一键克隆**：正序完整搬运目标频道的历史图文、音视频与文件，无痕重发并正则替换原频道广告。
-* **全天候关键词监听与商机拦截**：后台挂机监听数百个行业大群，命中求购、咨询关键词后毫秒级推送到您的销售群。
-
-### 4. 日常运维与群聊广播终端 (`python run_operations.py`)
-* **批量退群/退订频道**：一键退出非自建的无用群组，释放账号 500 个加群上限配额。
-* **@SpamBot 风控状态检测**：自动向官方机器人发送查询，获取账号当前的限制状态与解封时间。
-* **群聊自动定时循环广播**：按设定的时间周期（如每 60 分钟），自动向指定群聊列表轮播 Spintax 推广文案。
-* **频道新帖抢评**：监听目标频道发布新帖，毫秒级在关联讨论组抢发第一条引流评论。
-* **通讯录与 Stories 故事**：批量清空/导入联系人，自动发布 24 小时动态故事。
-
-## API 认证与授权配置
-
-控制台默认要求所有 `/api/*` 请求携带 Bearer API Key。系统支持两个角色：`TG_ADMIN_API_KEY` 可访问全部接口，`TG_OPERATOR_API_KEY` 仅可访问统计、账号列表、受众查询/导出、Spintax 预览和线索查看等低风险接口。账号导入、读取验证码、桌面端启动、批量退群、采集任务、拉群、私信和频道克隆均需要管理员密钥。
-
-生产环境必须设置 `TG_ENV=production`、`TG_ADMIN_API_KEY`、`TG_API_ID` 和 `TG_API_HASH`。建议使用密码管理器或部署平台的 Secret 注入机制生成随机密钥，例如：
+复制 `.env.example` 到部署环境并设置：
 
 ```bash
-export TG_ENV=production
-export TG_ADMIN_API_KEY="$(openssl rand -hex 32)"
-export TG_OPERATOR_API_KEY="$(openssl rand -hex 32)"
-export TG_API_ID="你的 Telegram API ID"
-export TG_API_HASH="你的 Telegram API Hash"
+TG_ENV=production
+TG_ADMIN_API_KEY=<随机长密钥>
+TG_OPERATOR_API_KEY=<随机长密钥>
+TG_API_ID=<Telegram API ID>
+TG_API_HASH=<Telegram API Hash>
+```
+
+CLI 入口现在统一从环境变量读取 Telegram API 凭据，不再在源代码中保存固定值。Session 名称限制为单段安全标识，避免直接拼接用户输入形成越界路径。
+
+仅在隔离的本机开发环境中使用认证旁路；生产环境应保持认证开启。
+
+## 启动 Web 服务
+
+```bash
 python server.py
 ```
 
-只有在隔离的本机开发环境中，才可以显式设置 `TG_AUTH_DISABLED=true` 旁路认证；该配置在 `TG_ENV=production` 时会被拒绝。前端首次调用 API 时会在当前浏览器会话中提示输入 API Key，并保存在 `sessionStorage`，关闭浏览器后自动清除。
+默认绑定 `127.0.0.1:8000`。生产部署时请放在受信任的反向代理或私有网络之后，并使用 Secret 管理 API Key、Telegram 凭据和代理凭据。
 
-不要把真实 API Key、Telegram session、TData、代理密码、数据库或 `.env` 文件提交到 Git。项目已通过 `.gitignore` 排除常见运行时和敏感文件。
+## CLI
 
-### 账号会话资产恢复
-
-“导入新账号”功能用于恢复 Telegram 会话资产，不恢复受众数据库。上传文件必须是 ZIP，并且包内需要包含 `tdata/key_datas`，或一层目录包装下的同等结构。服务端会先写入临时目录，限制上传大小、条目数量和解压总大小，阻止路径穿越与符号链接，然后仅复制有效的 TData 目录到 `accounts/<account_name>/tdata`；导入失败时会自动清理临时文件，不会留下半成品账号目录。
-
-该功能要求管理员 API Key。恢复 TData 后，首次使用“网页查验证码”或其他 Telethon 操作时，服务会按当前代理配置转换/生成对应的 Telethon Session。TData、Session 和代理配置都是高敏感资产，应只在受信任的本机或隔离服务器上操作。
-
-## 快速使用说明
-
-### 1. 安装依赖环境
 ```bash
-pip install -r requirements.txt
+python run_scraper.py
+python run_marketing.py
+python run_pro_tools.py
+python run_operations.py
 ```
 
-### 2. 运行对应功能
-根据您的任务目标直接运行对应的终端脚本即可。
+这些入口主要用于人工管理和受控自动化。涉及消息、邀请、采集或转载的操作应当基于合法授权，并遵守 Telegram 平台规则及适用法律。
+
+## 测试与静态检查
+
+```bash
+python -m compileall -q .
+PYTHONPATH=. python -m unittest discover -s tests -v
+```
+
+仓库包含 GitHub Actions 工作流，用于自动执行 Python 语法编译与轻量单元测试。
+
+## 敏感资产
+
+以下内容不要提交到 Git：
+
+- Telegram TData / Telethon Session
+- API Key / API Hash / 代理账号密码
+- SQLite 数据库
+- 上传文件和导出 CSV
+
+`.gitignore` 已经覆盖常见运行时目录和文件类型，但已有历史提交中的敏感资产仍需单独检查与清理。
