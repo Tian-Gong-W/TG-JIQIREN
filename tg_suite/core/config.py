@@ -21,7 +21,7 @@ def get_api_credentials() -> Tuple[int, str]:
 
     if not raw_api_id:
         raise RuntimeError("未配置 TG_API_ID")
-    if not raw_api_hash:
+    if not api_hash:
         raise RuntimeError("未配置 TG_API_HASH")
 
     try:

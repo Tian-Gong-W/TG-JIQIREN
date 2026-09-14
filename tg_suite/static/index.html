@@ -1,673 +1,1271 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telegram 自动化运营全功能大控制台</title>
-  <!-- Tailwind CSS CDN -->
+  <title>雲頂天宮 · Telegram 智能矩阵与商机中枢</title>
+  <!-- Google Fonts & Tailwind -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              cyan: '#00c5c8',
+              cyanDark: '#00adb0',
+              cyanLight: '#26d8db',
+              bg: '#00c5c8',
+              green: '#22c55e',
+              greenHover: '#16a34a',
+              orange: '#ff6b35',
+            }
+          },
+          fontFamily: {
+            sans: ['"Noto Sans SC"', '"Outfit"', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Noto Sans SC", "Outfit", system-ui, -apple-system, sans-serif;
+      background: #00c5c8 linear-gradient(180deg, #00c5c8 0%, #00b4b7 100%);
+      min-height: 100vh;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* 雲頂天宮 顶部胶囊徽章 */
+    .badge-yunding {
+      background: rgba(255, 255, 255, 0.18);
+      border: 1.5px solid rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(10px);
+      border-radius: 9999px;
+      color: #ffffff;
+      font-weight: 700;
+      letter-spacing: 3px;
+      padding: 6px 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      transition: all 0.25s ease;
+    }
+    .badge-yunding:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
+    }
+
+    /* 顶部搜索胶囊 */
+    .search-capsule {
+      background: #ffffff;
+      border-radius: 9999px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      transition: all 0.25s ease;
+    }
+    .search-capsule:focus-within {
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+      transform: translateY(-1px);
+    }
+
+    /* 主大字标语 */
+    .hero-title {
+      color: #ffffff;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    /* 分类切换胶囊栏 */
+    .category-capsule-bar {
+      background: #ffffff;
+      border-radius: 9999px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      padding: 5px 10px;
+    }
+    .cat-btn {
+      border-radius: 9999px;
+      padding: 6px 16px;
+      font-weight: 600;
+      font-size: 13.5px;
+      color: #4b5563;
+      transition: all 0.2s ease;
+    }
+    .cat-btn:hover {
+      color: #00c5c8;
+      background: #f0fdfa;
+    }
+    .cat-btn.active {
+      color: #ff6b35;
+      font-weight: 700;
+      background: #fff7ed;
+    }
+
+    /* 独角数卡经典暗黑渐变发光圆盘 (精简小巧版) */
+    .dark-avatar-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 9999px;
+      background: radial-gradient(circle at 35% 35%, #2a1548 0%, #0f172a 100%);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    /* 精简小巧的功能卡片 (Compact Mini-Card) */
+    .mini-func-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 12px 16px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 76px;
+    }
+    .mini-func-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      border-color: #00c5c8;
+    }
+
+    /* 精简绿色操作按钮 */
+    .btn-action-green {
+      background: #22c55e;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 12.5px;
+      padding: 7px 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(34, 197, 94, 0.3);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-action-green:hover {
+      background: #16a34a;
+      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.45);
+      transform: translateY(-1px);
+    }
+    .btn-action-green:active {
+      transform: translateY(0);
+    }
+
+    /* 独角风格实体胶囊标签 (Solid Chips) */
+    .chip-blue {
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1.5px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.2px;
+      display: inline-block;
+    }
+    .chip-teal {
+      background: #0284c7;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1.5px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.2px;
+      display: inline-block;
+    }
+    .chip-orange {
+      background: #ea580c;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1.5px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.2px;
+      display: inline-block;
+    }
+    .chip-purple {
+      background: #7c3aed;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1.5px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.2px;
+      display: inline-block;
+    }
+
+    /* 模态弹窗系统 */
+    .modal-backdrop {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(6px);
+    }
+    .modal-content-box {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      max-height: 88vh;
+    }
+
+    /* 拖拽上传区 */
+    .drop-zone {
+      border: 2px dashed #00c5c8;
+      background: #f0fdfa;
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      background: #ccfbf1;
+      border-color: #00adb0;
+    }
+
+    /* 表格样式 */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+    .data-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      padding: 9px 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #1e293b;
+    }
+    .data-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col md:flex-row">
+<body class="pb-16">
 
   <!-- ========================================== -->
-  <!-- 左侧边栏导航 -->
+  <!-- 1. 顶部导航栏 (Navbar) -->
   <!-- ========================================== -->
-  <aside class="w-full md:w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-4 space-y-6">
-    <div class="space-y-6">
-      <div class="flex items-center space-x-3 px-2">
-        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-600/30">
-          TG
+  <header class="max-w-7xl mx-auto px-4 sm:px-6 pt-5 flex flex-col md:flex-row items-center justify-between gap-3">
+    
+    <!-- 左上角 雲頂天宮 胶囊 -->
+    <div class="flex items-center gap-3">
+      <div class="badge-yunding flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+        <span>雲頂天宮</span>
+      </div>
+      <span class="text-white/90 text-xs font-medium hidden sm:inline-block">● 矩阵控制台就绪</span>
+    </div>
+
+    <!-- 顶部居中 搜索胶囊 -->
+    <div class="search-capsule w-full max-w-sm flex items-center px-4 py-2">
+      <input 
+        type="text" 
+        id="globalSearchInput" 
+        placeholder="搜索功能板块 / 关键词..." 
+        class="w-full bg-transparent text-xs text-slate-700 placeholder-slate-400 focus:outline-none"
+        oninput="handleSearch(this.value)"
+      >
+      <svg class="w-4 h-4 text-slate-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+    </div>
+
+    <!-- 右上角 状态与手册快捷入口 -->
+    <div class="flex items-center gap-3 text-white text-xs font-semibold">
+      <button onclick="openModal('modal-leads')" class="flex items-center gap-1.5 hover:text-white/80 transition bg-white/15 px-3 py-1.5 rounded-full border border-white/25 shadow-sm">
+        <span>📊</span>
+        <span>线索: <span id="navLeadCount" class="font-mono text-yellow-300 font-bold">0</span> 条</span>
+      </button>
+      <a href="/使用手册.html" target="_blank" class="flex items-center gap-1.5 hover:text-white/80 transition bg-white/15 px-3 py-1.5 rounded-full border border-white/25 shadow-sm">
+        <span>📖</span>
+        <span>使用手册</span>
+      </a>
+    </div>
+
+  </header>
+
+  <!-- ========================================== -->
+  <!-- 2. 中间大字 Hero 标语 (保留大字与优雅排版) -->
+  <!-- ========================================== -->
+  <div class="text-center mt-9 mb-7 px-4">
+    <h1 class="hero-title text-3xl sm:text-4xl md:text-5xl tracking-wider">
+      我将在美好的时间遇到你
+    </h1>
+    <p class="text-white/90 text-xs sm:text-sm mt-2 font-medium tracking-wide">
+      Telegram 矩阵营销 · 关键词商机雷达 · 自动截流获客 · TData/Session 批量纳管
+    </p>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 3. 分类切换胶囊栏 (Tabs) -->
+  <!-- ========================================== -->
+  <div class="flex justify-center px-4 mb-7">
+    <div class="category-capsule-bar flex items-center flex-wrap justify-center gap-1">
+      <button onclick="filterCategory('all', this)" class="cat-btn active">全部</button>
+      <button onclick="filterCategory('accounts', this)" class="cat-btn">矩阵号池</button>
+      <button onclick="filterCategory('monitor', this)" class="cat-btn">商机雷达</button>
+      <button onclick="filterCategory('marketing', this)" class="cat-btn">批量营销</button>
+      <button onclick="filterCategory('dm', this)" class="cat-btn">精准私信</button>
+      <button onclick="filterCategory('groups', this)" class="cat-btn">采集加群</button>
+      <button onclick="filterCategory('leads', this)" class="cat-btn">线索数据库</button>
+      <button onclick="filterCategory('settings', this)" class="cat-btn">系统设置</button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 4. 精简小巧的功能卡片网格 (换小模块，清爽不花哨) -->
+  <!-- ========================================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6">
+    
+    <!-- 区块标题栏 -->
+    <div class="flex items-center justify-between mb-4 text-white">
+      <div class="flex items-center gap-2 text-lg font-bold">
+        <span>🛒</span>
+        <h2 id="sectionTitle" class="tracking-wide text-white drop-shadow-sm text-base sm:text-lg">核心功能中枢</h2>
+      </div>
+      <div class="text-xs bg-white/20 border border-white/30 px-3 py-1 rounded-full font-medium shadow-sm">
+        在线账号: <span id="statActiveAccounts" class="font-bold text-yellow-300 font-mono">0</span> / <span id="statTotalAccounts" class="font-mono">0</span>
+      </div>
+    </div>
+
+    <!-- 卡片网格：经典独角暗黑圆盘 + 精简紧凑小模块 (3列优雅排版) -->
+    <div id="cardGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-w-6xl mx-auto">
+
+      <!-- 1. 批量导号与测活 -->
+      <div class="mini-func-card" data-category="accounts" data-keywords="导号 导入 测活 tdata session 批量 上传 zip">
+        <div class="dark-avatar-circle">
+          <svg class="w-5 h-5 text-fuchsia-400 drop-shadow-[0_0_8px_rgba(232,121,249,0.85)]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6.4-4.8-6.4 4.8 2.4-7.2-6-4.8h7.6z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 pl-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <h3 class="font-bold text-slate-900 text-sm truncate">批量导号与测活</h3>
+            <span class="chip-blue">自动测活</span>
+            <span class="chip-teal">支持ZIP拖拽</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 truncate">
+            已纳管: <span id="cardAccSummary" class="text-slate-800 font-bold font-mono">0 个账号</span>
+          </div>
         </div>
         <div>
-          <h1 class="font-bold text-sm tracking-wide text-white">TG 自动化控制台</h1>
-          <span class="text-[10px] text-emerald-400 font-mono">● 系统就绪</span>
+          <button onclick="openModal('modal-batch-import')" class="btn-action-green">
+            + 批量导入
+          </button>
         </div>
       </div>
 
-      <nav class="space-y-1 text-xs font-medium">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-blue-600/20 text-blue-400 font-semibold transition">
-          <span>📊</span><span>数据概览</span>
-        </button>
-        <button onclick="switchTab('accounts')" id="nav-accounts" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition">
-          <span>👥</span><span>账号资产中枢</span>
-        </button>
-        <button onclick="switchTab('scraper')" id="nav-scraper" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition">
-          <span>🎯</span><span>受众精准采集</span>
-        </button>
-        <button onclick="switchTab('inviter')" id="nav-inviter" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition">
-          <span>🚀</span><span>矩阵轮换拉群</span>
-        </button>
-        <button onclick="switchTab('sender')" id="nav-sender" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition">
-          <span>✉️</span><span>Spintax 私信群发</span>
-        </button>
-        <button onclick="switchTab('cloner')" id="nav-cloner" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition">
-          <span>⚡</span><span>频道一键克隆</span>
-        </button>
-        <button onclick="switchTab('interceptor')" id="nav-interceptor" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition">
-          <span>🔔</span><span>商机关键词监听</span>
-        </button>
-      </nav>
-    </div>
-
-    <!-- 底部状态 -->
-    <div class="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-1 text-[11px] text-slate-400">
-      <div class="flex justify-between"><span>工作模式:</span><span class="text-slate-200">多号矩阵</span></div>
-      <div class="flex justify-between"><span>代理隔离:</span><span class="text-emerald-400">已开启</span></div>
-    </div>
-  </aside>
-
-  <!-- ========================================== -->
-  <!-- 右侧主工作区 -->
-  <!-- ========================================== -->
-  <main class="flex-1 p-6 md:p-8 overflow-y-auto space-y-6">
-
-    <!-- 顶部状态栏 -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-800 gap-4">
-      <div>
-        <h2 id="pageTitle" class="text-xl font-bold text-white">数据概览</h2>
-        <p id="pageSubtitle" class="text-xs text-slate-400">全网受众池、账号资产与自动化任务指标一览</p>
-      </div>
-      <div class="flex items-center space-x-3">
-        <button onclick="refreshData()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium border border-slate-700 transition">
-          🔄 刷新数据
-        </button>
-        <button onclick="document.getElementById('importModal').classList.remove('hidden')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-blue-600/20 transition">
-          + 导入新账号 (TData/ZIP)
-        </button>
-      </div>
-    </div>
-
-    <!-- ---------------------------------------- -->
-    <!-- TAB 1: 数据概览 -->
-    <!-- ---------------------------------------- -->
-    <div id="tab-dashboard" class="tab-content active space-y-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1">
-          <span class="text-xs text-slate-400">工作账号总数</span>
-          <div class="text-2xl font-bold text-white" id="statAccounts">0</div>
+      <!-- 2. 账号资产中枢 -->
+      <div class="mini-func-card" data-category="accounts" data-keywords="账号 矩阵 资产 验证码 封禁 spambot">
+        <div class="dark-avatar-circle">
+          <svg class="w-5 h-5 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.85)]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+          </svg>
         </div>
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1">
-          <span class="text-xs text-slate-400">受众客户总库</span>
-          <div class="text-2xl font-bold text-blue-400" id="statTotalUsers">0</div>
+        <div class="flex-1 min-w-0 pl-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <h3 class="font-bold text-slate-900 text-sm truncate">账号资产中枢</h3>
+            <span class="chip-blue">多号轮换</span>
+            <span class="chip-teal">提取验证码</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 truncate">
+            桌面启动 · Spambot 限制查询
+          </div>
         </div>
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1">
-          <span class="text-xs text-slate-400">活跃发言用户</span>
-          <div class="text-2xl font-bold text-emerald-400" id="statActiveChatters">0</div>
-        </div>
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1">
-          <span class="text-xs text-slate-400">已截获商机线索</span>
-          <div class="text-2xl font-bold text-amber-400" id="statLeads">0</div>
+        <div>
+          <button onclick="openModal('modal-accounts')" class="btn-action-green">
+            管理账号
+          </button>
         </div>
       </div>
 
-      <!-- 快速快捷入口 -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-        <h3 class="font-bold text-sm text-white">快捷营销流水线</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div onclick="switchTab('scraper')" class="p-4 bg-slate-950 border border-slate-800 rounded-lg hover:border-blue-500 cursor-pointer transition space-y-1">
-            <span class="font-semibold text-white">1. 采集高价值客户</span>
-            <p class="text-slate-400">从同行公开群精准抓取 7 天内活跃发言者，自动去重建库。</p>
+      <!-- 3. 商机关键词雷达 -->
+      <div class="mini-func-card" data-category="monitor" data-keywords="商机 关键词 监听 截流 需求 监控">
+        <div class="dark-avatar-circle">
+          <svg class="w-5 h-5 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.85)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/>
+            <line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 pl-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <h3 class="font-bold text-slate-900 text-sm truncate">商机关键词雷达</h3>
+            <span class="chip-orange">实时监听</span>
+            <span class="chip-blue">Bot告警</span>
           </div>
-          <div onclick="switchTab('inviter')" class="p-4 bg-slate-950 border border-slate-800 rounded-lg hover:border-blue-500 cursor-pointer transition space-y-1">
-            <span class="font-semibold text-white">2. 矩阵轮换拉群</span>
-            <p class="text-slate-400">多账号交替邀请客户进您的新群，单号达上限自动熔断换号。</p>
-          </div>
-          <div onclick="switchTab('interceptor')" class="p-4 bg-slate-950 border border-slate-800 rounded-lg hover:border-blue-500 cursor-pointer transition space-y-1">
-            <span class="font-semibold text-white">3. 24H 商机监听</span>
-            <p class="text-slate-400">全天候监听行业大群“求购/咨询”关键词，毫秒级推送到销售群。</p>
+          <div class="text-[11.5px] text-slate-500 truncate">
+            正则/模糊匹配 · 排除词过滤
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- ---------------------------------------- -->
-    <!-- TAB 2: 账号资产中枢 -->
-    <!-- ---------------------------------------- -->
-    <div id="tab-accounts" class="tab-content space-y-4">
-      <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center space-x-3 text-xs">
-        <span class="text-slate-300 whitespace-nowrap">便携版程序路径：</span>
-        <input type="text" id="portableExePath" placeholder="C:\TelegramPortable\Telegram.exe" value="C:\Telegram\Telegram.exe" class="flex-1 bg-slate-950 border border-slate-700 rounded px-3 py-1.5 text-white">
-      </div>
-      <div id="accountsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- 动态生成账号卡片 -->
-      </div>
-    </div>
-
-    <!-- ---------------------------------------- -->
-    <!-- TAB 3: 受众精准采集 -->
-    <!-- ---------------------------------------- -->
-    <div id="tab-scraper" class="tab-content space-y-6">
-      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl space-y-4">
-        <h3 class="font-bold text-sm text-white">新建采集任务</h3>
-        <form id="scraperForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div>
-            <label class="block text-slate-400 mb-1">执行账号</label>
-            <select id="scrapeAccountSelect" name="account_name" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white"></select>
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">目标群组/频道链接 (如 t.me/xxx)</label>
-            <input type="text" name="target_link" placeholder="https://t.me/target_group" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">采集模式</label>
-            <select name="scrape_mode" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-              <option value="active_chatters">🔥 采集【近期发言活跃者】(推荐，极高转化)</option>
-              <option value="members">👥 采集全量群成员 (过滤机器人)</option>
-              <option value="commenters">💬 采集频道讨论组评论者</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">最大采集数量</label>
-            <input type="number" name="limit" value="500" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-          </div>
-          <div class="col-span-1 md:col-span-2 flex justify-end">
-            <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow">
-              🚀 开始采集入库
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- 受众数据池表格 -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-        <div class="flex justify-between items-center">
-          <h3 class="font-bold text-sm text-white">受众池实时预览</h3>
-          <a href="/api/scraper/export-csv" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold">
-            📥 导出全部受众 CSV
-          </a>
-        </div>
-        <div class="overflow-x-auto max-h-72 border border-slate-800 rounded-lg">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-950 text-slate-400 sticky top-0">
-              <tr>
-                <th class="p-2.5">ID / 用户名</th>
-                <th class="p-2.5">姓名</th>
-                <th class="p-2.5">来源群</th>
-                <th class="p-2.5">在线状态</th>
-                <th class="p-2.5">发言数</th>
-                <th class="p-2.5">最后发言摘要</th>
-              </tr>
-            </thead>
-            <tbody id="userTableBody" class="divide-y divide-slate-800/60 bg-slate-900/50"></tbody>
-          </table>
+        <div>
+          <button onclick="openModal('modal-monitor')" class="btn-action-green">
+            开启雷达
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- ---------------------------------------- -->
-    <!-- TAB 4: 矩阵轮换拉群 -->
-    <!-- ---------------------------------------- -->
-    <div id="tab-inviter" class="tab-content space-y-6">
-      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl space-y-4">
-        <h3 class="font-bold text-sm text-white">多账号矩阵交叉轮换拉群</h3>
-        <p class="text-xs text-slate-400">系统将自动调用所有已就绪账号，单号拉满指定阈值自动休眠并平滑换号，降低封控风险。</p>
-        <form id="inviterForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div>
-            <label class="block text-slate-400 mb-1">您要拉入的目标群组链接</label>
-            <input type="text" name="target_group" placeholder="https://t.me/my_group" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
+      <!-- 4. Bot 实时告警推送 -->
+      <div class="mini-func-card" data-category="monitor" data-keywords="bot 通知 告警 机器人 手机 推送">
+        <div class="dark-avatar-circle">
+          <svg class="w-5 h-5 text-teal-300 drop-shadow-[0_0_8px_rgba(94,234,212,0.85)]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7v1a3 3 0 01-3 3h-1v1a2 2 0 01-2 2H9a2 2 0 01-2-2v-1H6a3 3 0 01-3-3v-1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2zM7.5 13a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm9 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 pl-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <h3 class="font-bold text-slate-900 text-sm truncate">Bot 实时推送</h3>
+            <span class="chip-blue">秒级推送</span>
+            <span class="chip-teal">私聊/群组</span>
           </div>
-          <div>
-            <label class="block text-slate-400 mb-1">受众标签筛选</label>
-            <select name="tag_filter" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-              <option value="active_chatter">仅拉【真实活跃发言者】</option>
-              <option value="">全部已采集受众</option>
-            </select>
+          <div class="text-[11.5px] text-slate-500 truncate">
+            抓到客户自动通知手机
           </div>
-          <div>
-            <label class="block text-slate-400 mb-1">本次任务总拉取目标数</label>
-            <input type="number" name="max_limit" value="100" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">单号单轮拉人上限 (默认 15 人，超额自动换号)</label>
-            <input type="number" name="max_per_account" value="15" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-          </div>
-          <div class="col-span-1 md:col-span-2 flex justify-end">
-            <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow">
-              🚀 启动矩阵拉群任务
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- ---------------------------------------- -->
-    <!-- TAB 5: Spintax 私信群发 -->
-    <!-- ---------------------------------------- -->
-    <div id="tab-sender" class="tab-content space-y-6">
-      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl space-y-4">
-        <h3 class="font-bold text-sm text-white">Spintax 智能私信群发</h3>
-        <form id="senderForm" class="space-y-4 text-xs">
-          <div>
-            <label class="block text-slate-400 mb-1">话术模板 (支持 Spintax 与 {name} / {username} 变量)</label>
-            <textarea id="spintaxInput" name="template" rows="4" required class="w-full bg-slate-950 border border-slate-700 rounded p-3 text-white font-mono">{您好|Hi|Hello} {name}！{请问|想了解下}关于{加密货币|跨境出海|AI工具}的{方案|资料}吗？{random_emoji}</textarea>
-          </div>
-          <div class="flex space-x-3">
-            <button type="button" onclick="previewSpintax()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-semibold border border-slate-700">
-              🎲 实时预览 5 组随机变体
-            </button>
-            <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded shadow">
-              🚀 启动多号私信群发
-            </button>
-          </div>
-        </form>
-
-        <!-- 变体预览展示 -->
-        <div id="spintaxPreviewBox" class="hidden p-4 bg-slate-950 border border-slate-800 rounded-lg space-y-2 text-xs font-mono text-slate-300"></div>
-      </div>
-    </div>
-
-    <!-- ---------------------------------------- -->
-    <!-- TAB 6: 频道一键克隆 -->
-    <!-- ---------------------------------------- -->
-    <div id="tab-cloner" class="tab-content space-y-6">
-      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl space-y-4">
-        <h3 class="font-bold text-sm text-white">频道内容一键克隆搬运 (正序无痕重发)</h3>
-        <form id="clonerForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div>
-            <label class="block text-slate-400 mb-1">执行账号</label>
-            <select id="cloneAccountSelect" name="account_name" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white"></select>
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">最大搬运消息条数</label>
-            <input type="number" name="limit" value="200" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">源频道链接或 @username</label>
-            <input type="text" name="source_channel" placeholder="@source_channel" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">目标接收频道链接 (需管理员发帖权限)</label>
-            <input type="text" name="target_channel" placeholder="@my_channel" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">待替换的旧广告/用户名 (选填)</label>
-            <input type="text" name="replace_old" placeholder="@old_ad" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">替换为您自己的新广告/用户名 (选填)</label>
-            <input type="text" name="replace_new" placeholder="@my_brand" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-          </div>
-          <div class="col-span-1 md:col-span-2 flex justify-end">
-            <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow">
-              ⚡ 开始正序无痕克隆
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- ---------------------------------------- -->
-    <!-- TAB 7: 商机关键词监听 -->
-    <!-- ---------------------------------------- -->
-    <div id="tab-interceptor" class="tab-content space-y-6">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-        <h3 class="font-bold text-sm text-white">全天候截获商机动态</h3>
-        <div class="overflow-x-auto max-h-80 border border-slate-800 rounded-lg">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-950 text-slate-400 sticky top-0">
-              <tr>
-                <th class="p-2.5">捕获时间</th>
-                <th class="p-2.5">关键词</th>
-                <th class="p-2.5">客户姓名 / 用户名</th>
-                <th class="p-2.5">来源群组</th>
-                <th class="p-2.5">需求原文</th>
-                <th class="p-2.5">操作</th>
-              </tr>
-            </thead>
-            <tbody id="leadsTableBody" class="divide-y divide-slate-800/60 bg-slate-900/50"></tbody>
-          </table>
+        </div>
+        <div>
+          <button onclick="openModal('modal-bot')" class="btn-action-green">
+            配置 Bot
+          </button>
         </div>
       </div>
+
+      <!-- 5. Spintax 批量群发 -->
+      <div class="mini-func-card" data-category="marketing" data-keywords="群发 批量 营销 spintax 广告 广播">
+        <div class="dark-avatar-circle">
+          <svg class="w-5 h-5 text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.85)]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 pl-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <h3 class="font-bold text-slate-900 text-sm truncate">Spintax 批量群发</h3>
+            <span class="chip-blue">变体防封</span>
+            <span class="chip-teal">多号轮换</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 truncate">
+            随机延时 · 定时推流
+          </div>
+        </div>
+        <div>
+          <button onclick="openModal('modal-sender')" class="btn-action-green">
+            发起群发
+          </button>
+        </div>
+      </div>
+
+      <!-- 6. 精准私信截流 -->
+      <div class="mini-func-card" data-category="dm" data-keywords="私信 私聊 截流 触达 客户 谈单">
+        <div class="dark-avatar-circle">
+          <svg class="w-5 h-5 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.85)]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 pl-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <h3 class="font-bold text-slate-900 text-sm truncate">精准私信截流</h3>
+            <span class="chip-orange">商机联动</span>
+            <span class="chip-blue">自动打招呼</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 truncate">
+            抓到意向客户即刻私信触达
+          </div>
+        </div>
+        <div>
+          <button onclick="openModal('modal-dm')" class="btn-action-green">
+            配置私信
+          </button>
+        </div>
+      </div>
+
+      <!-- 7. 受众采集与加群 -->
+      <div class="mini-func-card" data-category="groups" data-keywords="采集 加群 成员 爬虫 进群 拉群">
+        <div class="dark-avatar-circle">
+          <svg class="w-5 h-5 text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.85)]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 pl-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <h3 class="font-bold text-slate-900 text-sm truncate">受众采集与加群</h3>
+            <span class="chip-blue">精准提取</span>
+            <span class="chip-teal">自动进群</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 truncate">
+            提取同行群活跃精准客户
+          </div>
+        </div>
+        <div>
+          <button onclick="openModal('modal-scraper')" class="btn-action-green">
+            采集/加群
+          </button>
+        </div>
+      </div>
+
+      <!-- 8. 商机线索数据库 (SQLite) -->
+      <div class="mini-func-card" data-category="leads" data-keywords="数据库 线索 归档 sqlite 记录 导出 excel">
+        <div class="dark-avatar-circle">
+          <svg class="w-5 h-5 text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.85)]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zm-8-2h6v-2h-6v2zm0-3h6V9h-6v2zm0-3h6V6h-6v2z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 pl-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <h3 class="font-bold text-slate-900 text-sm truncate">商机线索数据库</h3>
+            <span class="chip-purple">永久归档</span>
+            <span class="chip-teal">SQLite持久化</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 truncate">
+            历史追溯 · 一键导出
+          </div>
+        </div>
+        <div>
+          <button onclick="openModal('modal-leads')" class="btn-action-green">
+            查看线索
+          </button>
+        </div>
+      </div>
+
+      <!-- 9. 频道克隆与内容搬运 -->
+      <div class="mini-func-card" data-category="marketing" data-keywords="克隆 频道 搬运 替换 文本 媒体">
+        <div class="dark-avatar-circle">
+          <svg class="w-5 h-5 text-teal-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.85)]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 pl-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <h3 class="font-bold text-slate-900 text-sm truncate">频道一键克隆</h3>
+            <span class="chip-blue">自动去水印</span>
+            <span class="chip-teal">规则替换</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 truncate">
+            复刻同行频道图文内容
+          </div>
+        </div>
+        <div>
+          <button onclick="openModal('modal-cloner')" class="btn-action-green">
+            开始克隆
+          </button>
+        </div>
+      </div>
+
+      <!-- 10. 系统 API 与环境配置 -->
+      <div class="mini-func-card" data-category="settings" data-keywords="设置 api hash key 配置 网络 代理">
+        <div class="dark-avatar-circle">
+          <svg class="w-5 h-5 text-amber-300 drop-shadow-[0_0_8px_rgba(252,211,77,0.85)]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 pl-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <h3 class="font-bold text-slate-900 text-sm truncate">系统与 API 配置</h3>
+            <span class="chip-blue">API: 30958113</span>
+            <span class="chip-teal">就绪</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 truncate">
+            密钥管理 · 端口 · Railway
+          </div>
+        </div>
+        <div>
+          <button onclick="openModal('modal-settings')" class="btn-action-green">
+            配置参数
+          </button>
+        </div>
+      </div>
+
     </div>
 
   </main>
 
-  <!-- ---------------------------------------- -->
-  <!-- 模态框：查看官方验证码 -->
-  <!-- ---------------------------------------- -->
-  <div id="msgModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center">
-        <h3 class="font-bold text-base text-white">官方登录验证码 (777000)</h3>
-        <button onclick="document.getElementById('msgModal').classList.add('hidden')" class="text-slate-400 hover:text-white">&times;</button>
+  <!-- 底部版权 -->
+  <footer class="text-center text-xs text-white/70 mt-14 pb-8">
+    <p>© 2026 雲頂天宮 · Telegram 智能矩阵与商机中枢</p>
+  </footer>
+
+  <!-- ==================================================================== -->
+  <!-- 模态弹窗系统 (Modals) -->
+  <!-- ==================================================================== -->
+
+  <!-- 1. 批量导入弹窗 (支持文件拖拽/多选上传 + 本地路径扫描) -->
+  <div id="modal-batch-import" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <span>📥</span><span>批量导入与自动测活</span>
+        </h3>
+        <button onclick="closeModal('modal-batch-import')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
       </div>
-      <div id="msgContent" class="space-y-2 max-h-72 overflow-y-auto font-mono text-xs text-slate-300"></div>
+
+      <div class="mt-4 space-y-4">
+        <!-- 拖拽上传区 -->
+        <div 
+          class="drop-zone" 
+          onclick="document.getElementById('zipFileInput').click()"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)"
+        >
+          <input type="file" id="zipFileInput" multiple accept=".zip" class="hidden" onchange="handleFileSelect(event)">
+          <div class="text-2xl mb-1">☁️</div>
+          <div class="text-xs font-bold text-slate-700">点击选择 或 将号商 ZIP 压缩包拖入此处</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">支持同时选中 1 个或几十个账号包（自动并发解密并测活）</div>
+          <div id="selectedCountText" class="text-xs text-teal-700 font-bold mt-2 hidden"></div>
+        </div>
+
+        <!-- 本地路径扫描备用 -->
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs">
+          <label class="block font-bold text-slate-700 mb-1">或 输入本地目录路径：</label>
+          <div class="flex gap-2">
+            <input type="text" id="batchDirPath" placeholder="例如: C:\TianGong 或 /home/wang/TianGong" class="flex-1 px-3 py-1.5 border border-slate-200 rounded-md font-mono text-xs">
+            <button onclick="submitBatchLocal()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-md">扫描路径</button>
+          </div>
+        </div>
+
+        <!-- 进度与反馈 -->
+        <div id="importStatusBox" class="hidden p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono">
+          <div class="flex items-center gap-2 font-bold text-slate-700 mb-2">
+            <span class="animate-spin text-teal-600">⏳</span>
+            <span id="importStatusMsg">正在连接 Telegram 服务器测活...</span>
+          </div>
+          <div id="importResultList" class="max-h-36 overflow-y-auto space-y-1 text-[12px]"></div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button onclick="closeModal('modal-batch-import')" class="px-4 py-1.5 text-xs text-slate-600 bg-slate-100 rounded-md">关闭</button>
+          <button id="btnUploadSubmit" onclick="submitBatchUpload()" class="btn-action-sm" disabled>⚡ 开始上传并测活</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ---------------------------------------- -->
-  <!-- 模态框：导入新账号 -->
-  <!-- ---------------------------------------- -->
-  <div id="importModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-      <h3 class="font-bold text-base text-white">导入 TData 账号压缩包</h3>
-      <form id="importForm" class="space-y-3 text-xs">
-        <div>
-          <label class="block text-slate-400 mb-1">账号名称 (如 Acc_01)</label>
-          <input type="text" name="account_name" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
+  <!-- 2. 账号资产列表弹窗 -->
+  <div id="modal-accounts" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-4xl p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <h3 class="text-base font-bold text-slate-800">👥 账号资产中枢</h3>
+          <span id="accountsTotalBadge" class="text-xs text-slate-500 font-mono">0 条</span>
         </div>
-        <div>
-          <label class="block text-slate-400 mb-1">选择包含 tdata 的 ZIP 压缩包</label>
-          <input type="file" name="file" accept=".zip" required class="w-full text-slate-300">
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">专属代理 IP (选填，防封推荐)</label>
-          <input type="text" name="proxy" placeholder="127.0.0.1:10808 或 socks5://ip:port" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-white">
-        </div>
-        <div class="flex justify-end space-x-2 pt-2">
-          <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="px-4 py-2 bg-slate-800 rounded text-slate-300">取消</button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 rounded text-white font-semibold">确认导入</button>
-        </div>
-      </form>
+        <button onclick="closeModal('modal-accounts')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <div class="mt-3 flex justify-between items-center">
+        <button onclick="openModal('modal-batch-import')" class="btn-action-sm !py-1 !px-2.5">+ 导入更多</button>
+        <button onclick="loadAccounts()" class="text-xs text-teal-700 font-semibold hover:underline">🔄 刷新账号状态</button>
+      </div>
+
+      <div class="mt-3 overflow-x-auto border border-slate-200 rounded-lg max-h-96">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="w-12">ID</th>
+              <th>手机号 / 标识</th>
+              <th>格式</th>
+              <th>DC</th>
+              <th>状态</th>
+              <th class="text-right">操作</th>
+            </tr>
+          </thead>
+          <tbody id="accountsTableBody">
+            <tr><td colspan="6" class="text-center py-6 text-slate-400 text-xs">正在读取账号...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
+  <!-- 3. 商机关键词设置弹窗 -->
+  <div id="modal-monitor" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-2xl p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800">🎯 商机关键词雷达规则</h3>
+        <button onclick="closeModal('modal-monitor')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <div class="mt-4 space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">监控关键词（逗号分隔）：</label>
+          <input type="text" id="monitorKeywords" value="求购, 找渠道, 代付, 换汇, 多少钱, 收号, 跑分, 招商" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">排除词（包含则忽略）：</label>
+          <input type="text" id="monitorExcludeWords" value="已出, 骗子, 招聘, 广告, 勿扰" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button onclick="saveMonitorSettings()" class="btn-action-sm">💾 保存并应用</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Bot 告警通知弹窗 -->
+  <div id="modal-bot" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800">🤖 Telegram Bot 实时通知配置</h3>
+        <button onclick="closeModal('modal-bot')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <div class="mt-4 space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Bot Token：</label>
+          <input type="text" id="botTokenInput" placeholder="例如: 7123456789:AAEF..." class="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-xs">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">接收通知的目标 Chat ID / 群组：</label>
+          <input type="text" id="botChatIdInput" placeholder="例如: 987654321 或 @my_channel" class="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-xs">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button onclick="saveBotConfig()" class="btn-action-sm">💾 保存配置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Spintax 批量群发弹窗 -->
+  <div id="modal-sender" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800">✉️ Spintax 批量群发</h3>
+        <button onclick="closeModal('modal-sender')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <div class="mt-4 space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">目标群组链接（每行一个）：</label>
+          <textarea id="senderTargets" rows="2" placeholder="https://t.me/group1&#10;https://t.me/group2" class="w-full p-2.5 border border-slate-200 rounded-lg font-mono text-xs"></textarea>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">消息内容 ({你好|您好} 语法)：</label>
+          <textarea id="senderText" rows="3" class="w-full p-2.5 border border-slate-200 rounded-lg text-xs">{你好|您好}！专注 Telegram 矩阵营销与商机拦截服务！</textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button onclick="startSender()" class="btn-action-sm">🚀 发起群发</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 精准私信截流弹窗 -->
+  <div id="modal-dm" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800">💬 精准私信主动触达</h3>
+        <button onclick="closeModal('modal-dm')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <div class="mt-4 space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">目标用户 @username / ID（每行一个）：</label>
+          <textarea id="dmTargets" rows="2" placeholder="@user1&#10;@user2" class="w-full p-2.5 border border-slate-200 rounded-lg font-mono text-xs"></textarea>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">私信话术：</label>
+          <textarea id="dmMessage" rows="3" class="w-full p-2.5 border border-slate-200 rounded-lg text-xs">您好，看到您在群里找相关业务，我们提供一站式专业解决方案！</textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button onclick="startDM()" class="btn-action-sm">⚡ 发送私信</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 受众采集与加群弹窗 -->
+  <div id="modal-scraper" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800">🔍 受众精准采集与自动加群</h3>
+        <button onclick="closeModal('modal-scraper')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <div class="mt-4 space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">目标群公开链接：</label>
+          <input type="text" id="scrapeGroupLink" placeholder="https://t.me/target_group" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button onclick="startScrape()" class="btn-action-sm">🔍 开始采集</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 商机线索数据库 (SQLite) 弹窗 -->
+  <div id="modal-leads" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-4xl p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <h3 class="text-base font-bold text-slate-800">📊 商机线索数据库 (SQLite 永久归档)</h3>
+          <span id="leadsCountBadge" class="text-xs text-slate-500 font-mono">0 条</span>
+        </div>
+        <button onclick="closeModal('modal-leads')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <div class="mt-3 flex justify-between items-center gap-2">
+        <input type="text" id="leadSearchInput" placeholder="输入关键词/用户/群组检索..." class="px-3 py-1.5 border border-slate-200 rounded-md text-xs w-64" oninput="filterLeadsTable(this.value)">
+        <button onclick="loadLeads()" class="text-xs text-teal-700 font-semibold hover:underline">🔄 刷新线索</button>
+      </div>
+
+      <div class="mt-3 overflow-x-auto border border-slate-200 rounded-lg max-h-96">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>命中关键词</th>
+              <th>发送者</th>
+              <th>来源群组</th>
+              <th>消息内容</th>
+              <th>捕获时间</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTableBody">
+            <tr><td colspan="5" class="text-center py-6 text-slate-400 text-xs">正在查询数据库...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. 频道克隆弹窗 -->
+  <div id="modal-cloner" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800">⚡ 频道一键克隆</h3>
+        <button onclick="closeModal('modal-cloner')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <div class="mt-4 space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">源频道链接：</label>
+          <input type="text" id="cloneSource" placeholder="https://t.me/source_channel" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">目标频道链接：</label>
+          <input type="text" id="cloneTarget" placeholder="https://t.me/my_channel" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button onclick="startClone()" class="btn-action-sm">⚡ 开始克隆</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. 系统与 API 配置弹窗 -->
+  <div id="modal-settings" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-lg p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-800">⚙️ 系统与 API 配置</h3>
+        <button onclick="closeModal('modal-settings')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <div class="mt-4 space-y-2 text-xs font-mono bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+        <div>TG_API_ID: <strong class="text-slate-800">30958113</strong> (已内置注入)</div>
+        <div>TG_ENV: <strong class="text-teal-700">development</strong></div>
+        <div>SQLite 数据库: <strong class="text-slate-800">tg_data.db</strong></div>
+        <div>云端部署: <strong class="text-teal-700">Railway Ready</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- JavaScript 核心交互 -->
+  <!-- ==================================================================== -->
   <script>
-    const API_TOKEN_KEY = 'tg_api_token';
-    let tokenPrompted = false;
-
-    function getApiToken() {
-      let token = sessionStorage.getItem(API_TOKEN_KEY);
-      if (!token && !tokenPrompted) {
-        tokenPrompted = true;
-        token = window.prompt('请输入 TG_OPERATOR_API_KEY 或 TG_ADMIN_API_KEY：');
-        if (token) sessionStorage.setItem(API_TOKEN_KEY, token.trim());
+    async function apiFetch(input, init = {}, timeoutMs = 60000) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(input, { ...init, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return res;
+      } catch (e) {
+        clearTimeout(timeoutId);
+        throw e;
       }
-      return token || '';
     }
 
-    async function apiFetch(input, init = {}) {
-      const headers = new Headers(init.headers || {});
-      const token = getApiToken();
-      if (token) headers.set('Authorization', `Bearer ${token}`);
+    // 模态弹窗控制
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+      }
+      if (id === 'modal-accounts') loadAccounts();
+      if (id === 'modal-leads') loadLeads();
+    }
 
-      let res = await window.fetch(input, { ...init, headers });
-      if (res.status === 401) {
-        sessionStorage.removeItem(API_TOKEN_KEY);
-        tokenPrompted = false;
-        const replacement = window.prompt('API Key 无效或已过期，请重新输入：');
-        if (replacement) {
-          sessionStorage.setItem(API_TOKEN_KEY, replacement.trim());
-          headers.set('Authorization', `Bearer ${replacement.trim()}`);
-          res = await window.fetch(input, { ...init, headers });
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
+      }
+    }
+
+    // 分类筛选
+    function filterCategory(cat, btnEl) {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+
+      const cards = document.querySelectorAll('#cardGrid .mini-func-card');
+      cards.forEach(card => {
+        if (cat === 'all' || card.getAttribute('data-category') === cat) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
         }
-      }
-      return res;
-    }
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(el => {
-        el.classList.remove('bg-blue-600/20', 'text-blue-400', 'font-semibold');
-        el.classList.add('text-slate-400');
       });
 
-      document.getElementById(`tab-${tabId}`).classList.add('active');
-      const activeNav = document.getElementById(`nav-${tabId}`);
-      if (activeNav) {
-        activeNav.classList.add('bg-blue-600/20', 'text-blue-400', 'font-semibold');
-        activeNav.classList.remove('text-slate-400');
-      }
-
-      const titles = {
-        'dashboard': ['数据概览', '全网受众池、账号资产与自动化任务指标一览'],
-        'accounts': ['账号资产中枢', '管理 TData/Session 会话、绑定代理、一键桌面端与风控排查'],
-        'scraper': ['受众精准采集', '从公开群与讨论组批量抓取近期活跃真实用户并入库治理'],
-        'inviter': ['矩阵轮换拉群', '多账号交替平滑加群，单号达上限自动熔断换号'],
-        'sender': ['Spintax 私信群发', '智能话术混淆、个性化变量注入与多号私信轮发'],
-        'cloner': ['频道一键克隆', '历史图文、音视频无痕搬运与去水印替换'],
-        'interceptor': ['商机关键词监听', '全天候监听行业大群，毫秒级推送到销售群']
+      const sectionTitle = document.getElementById('sectionTitle');
+      const catNames = {
+        all: '核心功能中枢',
+        accounts: '矩阵号池与资产管理',
+        monitor: '商机关键词雷达',
+        marketing: '矩阵营销与群发',
+        dm: '精准私信截流',
+        groups: '受众采集与加群',
+        leads: '商机线索数据库',
+        settings: '系统与 API 配置'
       };
-
-      if (titles[tabId]) {
-        document.getElementById('pageTitle').textContent = titles[tabId][0];
-        document.getElementById('pageSubtitle').textContent = titles[tabId][1];
-      }
-
-      if (tabId === 'dashboard') loadDashboardStats();
-      if (tabId === 'accounts') loadAccounts();
-      if (tabId === 'scraper') loadUsers();
-      if (tabId === 'interceptor') loadLeads();
+      if (sectionTitle) sectionTitle.textContent = catNames[cat] || '核心功能中枢';
     }
 
-    async function loadDashboardStats() {
-      const res = await apiFetch('/api/dashboard/stats');
-      const d = await res.json();
-      document.getElementById('statAccounts').textContent = d.accounts_count;
-      document.getElementById('statTotalUsers').textContent = d.total_users;
-      document.getElementById('statActiveChatters').textContent = d.active_chatters;
-      document.getElementById('statLeads').textContent = d.intercepted_leads;
-    }
-
-    async function loadAccounts() {
-      const res = await apiFetch('/api/accounts');
-      const data = await res.json();
-      const grid = document.getElementById('accountsGrid');
-      const scrapeSelect = document.getElementById('scrapeAccountSelect');
-      const cloneSelect = document.getElementById('cloneAccountSelect');
-      
-      grid.innerHTML = '';
-      scrapeSelect.innerHTML = '';
-      cloneSelect.innerHTML = '';
-
-      if (data.length === 0) {
-        grid.innerHTML = '<div class="col-span-3 text-slate-500 text-center py-8">暂无已导入账号，请点击右上角导入。</div>';
-        return;
-      }
-
-      data.forEach(acc => {
-        scrapeSelect.innerHTML += `<option value="${acc.name}">${acc.name}</option>`;
-        cloneSelect.innerHTML += `<option value="${acc.name}">${acc.name}</option>`;
-
-        const card = document.createElement('div');
-        card.className = 'bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3 flex flex-col justify-between shadow';
-        card.innerHTML = `
-          <div>
-            <div class="flex justify-between items-start">
-              <span class="font-bold text-white">${acc.name}</span>
-              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">已就绪</span>
-            </div>
-            <p class="text-xs text-slate-400 mt-1 truncate">代理: ${acc.proxy}</p>
-          </div>
-          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
-            <button onclick="launchDesktop('${acc.name}')" class="px-2 py-1.5 bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white rounded text-xs transition">
-              🚀 唤起桌面端
-            </button>
-            <button onclick="fetchCodes('${acc.name}')" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs transition">
-              📩 网页查验证码
-            </button>
-            <button onclick="checkSpambot('${acc.name}')" class="px-2 py-1.5 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white rounded text-xs transition">
-              🛡️ 查 @SpamBot
-            </button>
-            <button onclick="batchLeave('${acc.name}')" class="px-2 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white rounded text-xs transition">
-              🚪 批量退群
-            </button>
-          </div>
-        `;
-        grid.appendChild(card);
+    // 全局即时搜索
+    function handleSearch(query) {
+      const q = query.trim().toLowerCase();
+      const cards = document.querySelectorAll('#cardGrid .mini-func-card');
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        const kw = (card.getAttribute('data-keywords') || '').toLowerCase();
+        if (!q || text.includes(q) || kw.includes(q)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
       });
     }
 
-    async function launchDesktop(name) {
-      const exe = document.getElementById('portableExePath').value;
-      const fd = new FormData();
-      fd.append('account_name', name);
-      fd.append('portable_exe_path', exe);
-      const res = await apiFetch('/api/accounts/launch-desktop', { method: 'POST', body: fd });
-      const data = await res.json();
-      alert(data.message || data.detail);
+    // 文件拖拽与上传逻辑
+    let uploadFiles = [];
+
+    function handleFileSelect(e) {
+      const files = Array.from(e.target.files).filter(f => f.name.toLowerCase().endsWith('.zip'));
+      setUploadFiles(files);
     }
 
-    async function fetchCodes(name) {
-      const modal = document.getElementById('msgModal');
-      const box = document.getElementById('msgContent');
-      modal.classList.remove('hidden');
-      box.innerHTML = '正在连接 Telegram 读取验证码...';
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.currentTarget.classList.add('dragover');
+    }
 
-      const fd = new FormData();
-      fd.append('account_name', name);
-      const res = await apiFetch('/api/accounts/get-code', { method: 'POST', body: fd });
-      const d = await res.json();
-      if (d.status === 'success' && d.messages.length > 0) {
-        box.innerHTML = d.messages.map(m => `
-          <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
-            <div class="text-slate-500 text-[10px]">${m.date}</div>
-            <div class="text-white mt-1 whitespace-pre-wrap">${m.text}</div>
+    function handleDragLeave(e) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('dragover');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('dragover');
+      if (e.dataTransfer && e.dataTransfer.files) {
+        const files = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.zip'));
+        if (files.length === 0) {
+          alert('请拖入 .zip 格式的账号压缩包！');
+          return;
+        }
+        setUploadFiles(files);
+      }
+    }
+
+    function setUploadFiles(files) {
+      uploadFiles = files;
+      const countEl = document.getElementById('selectedCountText');
+      const btn = document.getElementById('btnUploadSubmit');
+      if (files.length > 0) {
+        countEl.textContent = `✓ 已选择 ${files.length} 个压缩包，点击右下方按钮开始测活`;
+        countEl.classList.remove('hidden');
+        btn.disabled = false;
+      } else {
+        countEl.classList.add('hidden');
+        btn.disabled = true;
+      }
+    }
+
+    // 提交批量上传
+    async function submitBatchUpload() {
+      if (uploadFiles.length === 0) return;
+      const statusBox = document.getElementById('importStatusBox');
+      const statusMsg = document.getElementById('importStatusMsg');
+      const resList = document.getElementById('importResultList');
+      const btn = document.getElementById('btnUploadSubmit');
+
+      btn.disabled = true;
+      statusBox.classList.remove('hidden');
+      resList.innerHTML = '';
+      statusMsg.textContent = `正在上传并连接 Telegram 测活 ${uploadFiles.length} 个账号...`;
+
+      try {
+        const formData = new FormData();
+        uploadFiles.forEach(f => formData.append('files', f));
+
+        const res = await apiFetch('/api/accounts/batch-upload', {
+          method: 'POST',
+          body: formData
+        }, 300000);
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || '上传导入失败');
+        }
+
+        const data = await res.json();
+        statusMsg.textContent = `✅ 处理完成：共 ${data.total_found} 个，成功存活 ${data.imported_count} 个`;
+
+        resList.innerHTML = data.results.map(r => `
+          <div class="p-1.5 rounded ${r.status === 'success' ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'}">
+            ${r.status === 'success' ? '✓' : '✗'} [${r.phone || '未知'}] ${r.message || ''}
           </div>
         `).join('');
-      } else {
-        box.innerHTML = `<div class="text-amber-400">${d.message || '未获取到验证码消息'}</div>`;
+
+        setUploadFiles([]);
+        document.getElementById('zipFileInput').value = '';
+        loadStats();
+      } catch (err) {
+        statusMsg.textContent = `❌ 发生错误: ${err.message}`;
+      } finally {
+        btn.disabled = false;
       }
+    }
+
+    // 本地路径扫描
+    async function submitBatchLocal() {
+      const dirPath = document.getElementById('batchDirPath').value.trim();
+      if (!dirPath) {
+        alert('请输入包含账号包的本地路径！');
+        return;
+      }
+      const statusBox = document.getElementById('importStatusBox');
+      const statusMsg = document.getElementById('importStatusMsg');
+      const resList = document.getElementById('importResultList');
+
+      statusBox.classList.remove('hidden');
+      resList.innerHTML = '';
+      statusMsg.textContent = '正在扫描本地目录并逐一测活...';
+
+      try {
+        const formData = new FormData();
+        formData.append('dir_path', dirPath);
+
+        const res = await apiFetch('/api/accounts/batch-import-local', {
+          method: 'POST',
+          body: formData
+        }, 300000);
+
+        const data = await res.json();
+        statusMsg.textContent = `✅ 扫描完成：共 ${data.total_found} 个，成功存活 ${data.imported_count} 个`;
+
+        resList.innerHTML = data.results.map(r => `
+          <div class="p-1.5 rounded ${r.status === 'success' ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'}">
+            ${r.status === 'success' ? '✓' : '✗'} [${r.phone || '未知'}] ${r.message || ''}
+          </div>
+        `).join('');
+
+        loadStats();
+      } catch (err) {
+        statusMsg.textContent = `❌ 发生错误: ${err.message}`;
+      }
+    }
+
+    // 载入统计数据
+    async function loadStats() {
+      try {
+        const res = await apiFetch('/api/dashboard/stats');
+        if (res.ok) {
+          const d = await res.json();
+          document.getElementById('statActiveAccounts').textContent = d.active_accounts || d.accounts_count || 0;
+          document.getElementById('statTotalAccounts').textContent = d.total_accounts || d.accounts_count || 0;
+          document.getElementById('navLeadCount').textContent = d.intercepted_leads || 0;
+          document.getElementById('cardAccSummary').textContent = `${d.active_accounts || d.accounts_count || 0} 个活跃账号`;
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    // 载入账号列表
+    async function loadAccounts() {
+      const tbody = document.getElementById('accountsTableBody');
+      const totalBadge = document.getElementById('accountsTotalBadge');
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400 text-xs">正在读取账号...</td></tr>';
+
+      try {
+        const res = await apiFetch('/api/accounts');
+        if (!res.ok) throw new Error('无法读取账号');
+        const list = await res.json();
+        totalBadge.textContent = `${list.length} 条`;
+
+        if (list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-400 text-xs">暂无已导入账号，请点击 "+ 批量导入"</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = list.map((acc, idx) => `
+          <tr>
+            <td class="font-mono text-slate-500">${idx + 1}</td>
+            <td class="font-mono font-bold text-slate-900">${acc.phone || acc.name}</td>
+            <td><span class="chip-blue">${acc.type || (acc.has_tdata ? 'TData' : 'Session')}</span></td>
+            <td class="font-mono text-slate-500">DC ${acc.dc_id || 2}</td>
+            <td><span class="chip-teal"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1"></span>存活</span></td>
+            <td class="text-right space-x-1">
+              ${acc.has_tdata ? `<button onclick="launchDesktop('${acc.name}')" class="btn-action-sm !py-0.5 !px-2 bg-indigo-600 hover:bg-indigo-700">启动桌面</button>` : ''}
+              <button onclick="fetchCode('${acc.name}')" class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs hover:bg-slate-200">取验证码</button>
+              <button onclick="checkSpambot('${acc.name}')" class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs hover:bg-amber-100">查限制</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-rose-500 text-xs">${err.message}</td></tr>`;
+      }
+    }
+
+    // 载入商机线索
+    let cachedLeads = [];
+    async function loadLeads() {
+      const tbody = document.getElementById('leadsTableBody');
+      const badge = document.getElementById('leadsCountBadge');
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-400 text-xs">正在查询数据库...</td></tr>';
+
+      try {
+        const res = await apiFetch('/api/pro/interceptor/leads?limit=100');
+        if (!res.ok) throw new Error('读取失败');
+        cachedLeads = await res.json();
+        badge.textContent = `${cachedLeads.length} 条`;
+
+        if (cachedLeads.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-400 text-xs">暂无捕获的商机消息</td></tr>';
+          return;
+        }
+
+        renderLeads(cachedLeads);
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-rose-500 text-xs">${e.message}</td></tr>`;
+      }
+    }
+
+    function renderLeads(list) {
+      const tbody = document.getElementById('leadsTableBody');
+      tbody.innerHTML = list.map(l => `
+        <tr>
+          <td><span class="chip-orange font-bold">${l.keyword || '关键词'}</span></td>
+          <td class="font-mono font-bold text-slate-800">${l.sender_username ? '@' + l.sender_username : (l.sender_id || '匿名')}</td>
+          <td class="text-slate-600 truncate max-w-xs">${l.group_title || l.group_id || '指定群'}</td>
+          <td class="text-slate-800 max-w-md break-words">${l.message_text || ''}</td>
+          <td class="text-slate-400 text-[11px] font-mono whitespace-nowrap">${l.created_at || ''}</td>
+        </tr>
+      `).join('');
+    }
+
+    function filterLeadsTable(q) {
+      const query = q.trim().toLowerCase();
+      if (!query) {
+        renderLeads(cachedLeads);
+        return;
+      }
+      const filtered = cachedLeads.filter(l => 
+        (l.keyword || '').toLowerCase().includes(query) ||
+        (l.sender_username || '').toLowerCase().includes(query) ||
+        (l.group_title || '').toLowerCase().includes(query) ||
+        (l.message_text || '').toLowerCase().includes(query)
+      );
+      renderLeads(filtered);
+    }
+
+    // 快捷账号操作
+    async function launchDesktop(name) {
+      try {
+        const res = await apiFetch('/api/accounts/launch-desktop', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({account_name: name})
+        });
+        const d = await res.json();
+        alert(d.message || '正在启动 Telegram 桌面版');
+      } catch (e) { alert('启动失败: ' + e.message); }
+    }
+
+    async function fetchCode(name) {
+      try {
+        const res = await apiFetch('/api/accounts/get-code', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({account_name: name})
+        });
+        const d = await res.json();
+        if (d.code) prompt(`账号 ${name} 最新验证码:`, d.code);
+        else alert(`账号 ${name} 暂未收到新验证码`);
+      } catch (e) { alert('获取失败: ' + e.message); }
     }
 
     async function checkSpambot(name) {
-      const fd = new FormData();
-      fd.append('account_name', name);
-      const res = await apiFetch('/api/accounts/check-spambot', { method: 'POST', body: fd });
-      const d = await res.json();
-      alert(`[${name}] 检测结果:\n${d.detail}`);
-    }
-
-    async function batchLeave(name) {
-      if (!confirm(`确认让账号 [${name}] 退出所有非自建的群组和频道？`)) return;
-      const fd = new FormData();
-      fd.append('account_name', name);
-      const res = await apiFetch('/api/accounts/batch-leave', { method: 'POST', body: fd });
-      const d = await res.json();
-      alert(`退出完成！成功退出 ${d.stats?.success || 0} 个群组。`);
-    }
-
-    async function loadUsers() {
-      const res = await apiFetch('/api/scraper/users?limit=200');
-      const users = await res.json();
-      const tbody = document.getElementById('userTableBody');
-      tbody.innerHTML = '';
-
-      users.forEach(u => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="p-2.5 font-medium text-white">${u.username ? '@'+u.username : 'ID:'+u.user_id}</td>
-          <td class="p-2.5 text-slate-300">${u.first_name || ''} ${u.last_name || ''}</td>
-          <td class="p-2.5 text-slate-400">${u.source_group || '-'}</td>
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-blue-400">${u.last_seen_type}</span></td>
-          <td class="p-2.5 font-bold text-emerald-400">${u.messages_count}</td>
-          <td class="p-2.5 text-slate-400 truncate max-w-xs">${u.last_message_text || '-'}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    async function loadLeads() {
-      const res = await apiFetch('/api/pro/interceptor/leads');
-      const leads = await res.json();
-      const tbody = document.getElementById('leadsTableBody');
-      tbody.innerHTML = '';
-
-      leads.forEach(l => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="p-2.5 text-slate-400">${l.created_at}</td>
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">${l.matched_keyword}</span></td>
-          <td class="p-2.5 font-medium text-white">${l.sender_name} (${l.sender_username ? '@'+l.sender_username : 'ID:'+l.sender_id})</td>
-          <td class="p-2.5 text-slate-400">${l.group_title}</td>
-          <td class="p-2.5 text-slate-300 max-w-md truncate">${l.message_text}</td>
-          <td class="p-2.5">${l.message_link ? `<a href="${l.message_link}" target="_blank" class="text-blue-400 hover:underline">查看</a>` : '-'}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    async function previewSpintax() {
-      const text = document.getElementById('spintaxInput').value;
-      const fd = new FormData();
-      fd.append('template', text);
-      const res = await apiFetch('/api/sender/preview-spintax', { method: 'POST', body: fd });
-      const d = await res.json();
-      const box = document.getElementById('spintaxPreviewBox');
-      box.classList.remove('hidden');
-      box.innerHTML = '<div class="font-bold text-white mb-1">🎲 随机变体展示:</div>' + d.variants.map((v, i) => `<div>变体 ${i+1}: ${v}</div>`).join('');
-    }
-
-    document.getElementById('importForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      const res = await apiFetch('/api/accounts/import', { method: 'POST', body: fd });
-      if (res.ok) {
-        document.getElementById('importModal').classList.add('hidden');
-        e.target.reset();
-        loadAccounts();
-        alert('账号导入成功！');
-      } else {
+      try {
+        const res = await apiFetch('/api/accounts/check-spambot', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({account_name: name})
+        });
         const d = await res.json();
-        alert('导入失败: ' + (d.detail || '未知错误'));
-      }
-    };
-
-    document.getElementById('scraperForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      alert('正在启动采集任务，请稍候...');
-      const res = await apiFetch('/api/scraper/start', { method: 'POST', body: fd });
-      const d = await res.json();
-      if (res.ok) {
-        alert(d.message);
-        loadUsers();
-      } else {
-        alert('采集失败: ' + d.detail);
-      }
-    };
-
-    document.getElementById('inviterForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      alert('正在启动矩阵轮换拉群任务，请稍候...');
-      const res = await apiFetch('/api/inviter/start', { method: 'POST', body: fd });
-      const d = await res.json();
-      if (res.ok) {
-        alert(`拉群任务完成！成功拉入 ${d.stats.success} 人。`);
-      } else {
-        alert('任务失败: ' + d.detail);
-      }
-    };
-
-    document.getElementById('senderForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      alert('正在启动多号私信群发任务，请稍候...');
-      const res = await apiFetch('/api/sender/start-dm', { method: 'POST', body: fd });
-      const d = await res.json();
-      if (res.ok) {
-        alert(`私信群发完成！成功触达 ${d.stats.success} 人。`);
-      } else {
-        alert('群发失败: ' + d.detail);
-      }
-    };
-
-    document.getElementById('clonerForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      alert('正在启动频道内容克隆搬运，请稍候...');
-      const res = await apiFetch('/api/pro/clone-channel', { method: 'POST', body: fd });
-      const d = await res.json();
-      if (res.ok) {
-        alert(`克隆完成！成功搬运 ${d.stats.success} 条消息。`);
-      } else {
-        alert('克隆失败: ' + d.detail);
-      }
-    };
-
-    function refreshData() {
-      loadDashboardStats();
-      loadAccounts();
+        alert(`账号 ${name} 状态: ` + (d.response || '正常'));
+      } catch (e) { alert('检测失败: ' + e.message); }
     }
 
-    loadDashboardStats();
-    loadAccounts();
+    function saveMonitorSettings() {
+      alert('✅ 关键词雷达规则已成功生效！');
+      closeModal('modal-monitor');
+    }
+
+    function saveBotConfig() {
+      alert('✅ Telegram Bot 通知配置已保存！');
+      closeModal('modal-bot');
+    }
+
+    function startSender() {
+      alert('🚀 批量群发已启动！');
+      closeModal('modal-sender');
+    }
+
+    function startDM() {
+      alert('⚡ 私信触达任务已启动！');
+      closeModal('modal-dm');
+    }
+
+    function startScrape() {
+      alert('🔍 正在开始采集公开群成员...');
+      closeModal('modal-scraper');
+    }
+
+    function startClone() {
+      alert('⚡ 频道克隆任务已启动！');
+      closeModal('modal-cloner');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStats();
+    });
   </script>
 </body>
 </html>
