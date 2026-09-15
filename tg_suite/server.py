@@ -218,7 +218,7 @@ async def generate_ai_copy(payload: AICopyRequest, _: str = Depends(require_admi
     base_url = _ai_setting("TG_AI_BASE_URL", "https://api.openai.com/v1").strip().rstrip("/")
     model = _ai_setting("TG_AI_MODEL", "gpt-4o-mini").strip()
     if provider in {"mistral", "mistral_conversations", "mistral-agents"}:
-        base_url = os.getenv("TG_AI_BASE_URL", "https://api.mistral.ai/v1").strip().rstrip("/")
+        base_url = _ai_setting("TG_AI_BASE_URL", "https://api.mistral.ai/v1").strip().rstrip("/")
     if not api_key:
         raise HTTPException(status_code=503, detail="尚未配置 TG_AI_API_KEY 或 MISTRAL_API_KEY，请先配置 AI API Key")
     if not payload.topic.strip():
@@ -230,7 +230,7 @@ async def generate_ai_copy(payload: AICopyRequest, _: str = Depends(require_admi
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     if provider in {"mistral", "mistral_conversations", "mistral-agents"}:
         agent_id = _ai_setting("TG_AI_AGENT_ID", "").strip()
-        agent_version = os.getenv("TG_AI_AGENT_VERSION", "").strip()
+        agent_version = _ai_setting("TG_AI_AGENT_VERSION", "").strip()
         if not agent_id:
             raise HTTPException(status_code=503, detail="Mistral 模式需要配置 TG_AI_AGENT_ID")
         body = {"agent_id": agent_id, "inputs": [{"role": "user", "content": f"{system}\n\n{user}"}]}
