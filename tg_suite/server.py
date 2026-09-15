@@ -1132,7 +1132,12 @@ async def delete_monitor_bot_target(target_id: int, _: str = Depends(require_adm
 # 背景图显式路由：避免 Railway 静态挂载对二进制资源返回 404
 @app.get("/assets/yun-ding.jpg")
 async def yun_ding_background():
-    return FileResponse(os.path.join(BASE_DIR, "static", "assets", "yun-ding.jpg"), media_type="image/jpeg")
+    cache_headers = {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "CDN-Cache-Control": "public, max-age=31536000",
+        "Surrogate-Control": "public, max-age=31536000",
+    }
+    return FileResponse(os.path.join(BASE_DIR, "static", "assets", "yun-ding.jpg"), media_type="image/jpeg", headers=cache_headers)
 
 @app.get("/demo", include_in_schema=False)
 async def public_demo_page():
