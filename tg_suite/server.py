@@ -214,8 +214,8 @@ async def get_ai_config(_: str = Depends(require_auth)):
 async def generate_ai_copy(payload: AICopyRequest, _: str = Depends(require_admin)):
     """调用任意 OpenAI-compatible /chat/completions 接口生成营销文案。"""
     provider = _ai_setting("TG_AI_PROVIDER", "OpenAI-compatible").strip().lower()
-    api_key = _ai_setting("TG_AI_API_KEY") or _ai_setting("MISTRAL_API_KEY")
-    base_url = _ai_setting("TG_AI_BASE_URL", "https://api.openai.com/v1").strip().rstrip("/")
+    api_key = _ai_setting("TG_AI_COPY_API_KEY") or _ai_setting("TG_AI_API_KEY") or _ai_setting("MISTRAL_API_KEY")
+    base_url = _ai_setting("TG_AI_COPY_BASE_URL", _ai_setting("TG_AI_BASE_URL", "https://api.openai.com/v1")).strip().rstrip("/")
     model = _ai_setting("TG_AI_MODEL", "gpt-4o-mini").strip()
     if provider in {"mistral", "mistral_conversations", "mistral-agents"}:
         base_url = _ai_setting("TG_AI_BASE_URL", "https://api.mistral.ai/v1").strip().rstrip("/")
@@ -229,8 +229,8 @@ async def generate_ai_copy(payload: AICopyRequest, _: str = Depends(require_admi
     user = f"主题/原始需求：{payload.topic.strip()}\n补充上下文：{payload.context.strip() or '无'}\n请生成适合 Telegram 发布的短文案，避免夸大、诱导和违规承诺。"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     if provider in {"mistral", "mistral_conversations", "mistral-agents"}:
-        agent_id = _ai_setting("TG_AI_AGENT_ID", "").strip()
-        agent_version = _ai_setting("TG_AI_AGENT_VERSION", "").strip()
+        agent_id = _ai_setting("TG_AI_COPY_AGENT_ID", _ai_setting("TG_AI_AGENT_ID", "")).strip()
+        agent_version = _ai_setting("TG_AI_COPY_AGENT_VERSION", _ai_setting("TG_AI_AGENT_VERSION", "")).strip()
         if not agent_id:
             raise HTTPException(status_code=503, detail="Mistral 模式需要配置 TG_AI_AGENT_ID")
         body = {"agent_id": agent_id, "inputs": [{"role": "user", "content": f"{system}\n\n{user}"}]}
@@ -269,20 +269,20 @@ async def generate_ai_copy(payload: AICopyRequest, _: str = Depends(require_admi
 async def _generate_ai_text(prompt: str, context: str = "", purpose: str = "回复") -> str:
     """统一 AI 文本生成，供文案、自动回复、频道评论复用。"""
     provider = _ai_setting("TG_AI_PROVIDER", "OpenAI-compatible").strip().lower()
-    api_key = _ai_setting("TG_AI_API_KEY") or _ai_setting("MISTRAL_API_KEY")
-    base_url = _ai_setting("TG_AI_BASE_URL", "https://api.openai.com/v1").strip().rstrip("/")
+    api_key = _ai_setting("TG_AI_AUTO_API_KEY") or _ai_setting("TG_AI_API_KEY") or _ai_setting("MISTRAL_API_KEY")
+    base_url = _ai_setting("TG_AI_AUTO_BASE_URL", _ai_setting("TG_AI_BASE_URL", "https://api.openai.com/v1")).strip().rstrip("/")
     model = _ai_setting("TG_AI_MODEL", "gpt-4o-mini").strip()
     if provider in {"mistral", "mistral_conversations", "mistral-agents"}:
-        base_url = os.getenv("TG_AI_BASE_URL", "https://api.mistral.ai/v1").strip().rstrip("/")
+        base_url = _ai_setting("TG_AI_AUTO_BASE_URL", _ai_setting("TG_AI_BASE_URL", "https://api.mistral.ai/v1")).strip().rstrip("/")
     if not api_key: raise RuntimeError("未配置 AI API Key")
     system = f"你是 Telegram 社区运营助手，负责生成{purpose}。回复简洁、自然、符合上下文，不要编造事实，不要夸大承诺。"
     user = f"上下文：{context or '无'}\n待处理内容：{prompt}\n请只输出最终{purpose}文本。"
     headers={"Authorization":f"Bearer {api_key}","Content-Type":"application/json"}
     if provider in {"mistral", "mistral_conversations", "mistral-agents"}:
-        agent_id=_ai_setting("TG_AI_AGENT_ID", "").strip()
+        agent_id=_ai_setting("TG_AI_AUTO_AGENT_ID", _ai_setting("TG_AI_AGENT_ID", "")).strip()
         if not agent_id: raise RuntimeError("Mistral 模式未配置 TG_AI_AGENT_ID")
         body={"agent_id":agent_id,"inputs":[{"role":"user","content":f"{system}\n\n{user}"}]}
-        version=os.getenv("TG_AI_AGENT_VERSION", "").strip()
+        version=_ai_setting("TG_AI_AUTO_AGENT_VERSION", _ai_setting("TG_AI_AGENT_VERSION", "")).strip()
         if version: body["agent_version"]=int(version)
         endpoint=f"{base_url}/conversations"
     else:
@@ -317,6 +317,12 @@ class AISettingsRequest(BaseModel):
     api_key: str = ""
     agent_id: str = ""
     agent_version: str = "1"
+    copy_api_key: str = ""
+    copy_agent_id: str = ""
+    copy_agent_version: str = ""
+    auto_api_key: str = ""
+    auto_agent_id: str = ""
+    auto_agent_version: str = ""
 
 @app.post("/api/ai/settings")
 async def save_ai_settings(payload: AISettingsRequest, _: str = Depends(require_admin)):
@@ -327,6 +333,12 @@ async def save_ai_settings(payload: AISettingsRequest, _: str = Depends(require_
     if payload.agent_id.strip(): os.environ["TG_AI_AGENT_ID"]=payload.agent_id.strip()
     values={"TG_AI_PROVIDER":payload.provider,"TG_AI_BASE_URL":payload.base_url,"TG_AI_MODEL":payload.model,"TG_AI_AGENT_ID":payload.agent_id,"TG_AI_AGENT_VERSION":payload.agent_version}
     if payload.api_key.strip(): values["MISTRAL_API_KEY" if payload.provider.lower().startswith("mistral") else "TG_AI_API_KEY"] = payload.api_key
+    if payload.copy_agent_id.strip(): values["TG_AI_COPY_AGENT_ID"] = payload.copy_agent_id
+    if payload.copy_agent_version.strip(): values["TG_AI_COPY_AGENT_VERSION"] = payload.copy_agent_version
+    if payload.copy_api_key.strip(): values["TG_AI_COPY_API_KEY"] = payload.copy_api_key
+    if payload.auto_agent_id.strip(): values["TG_AI_AUTO_AGENT_ID"] = payload.auto_agent_id
+    if payload.auto_agent_version.strip(): values["TG_AI_AUTO_AGENT_VERSION"] = payload.auto_agent_version
+    if payload.auto_api_key.strip(): values["TG_AI_AUTO_API_KEY"] = payload.auto_api_key
     database.save_ai_settings(values)
     for key, value in values.items():
         if value and str(value).strip(): os.environ[key]=str(value).strip()
