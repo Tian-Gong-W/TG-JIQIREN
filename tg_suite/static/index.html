@@ -427,6 +427,27 @@
     .btn-action-green { font-size: 12px; padding: 6px 11px; }
     .chip-blue, .chip-teal, .chip-orange, .chip-purple { font-size: 10px; padding: 2px 7px; }
     .module-popover-panel { width: min(94vw, 680px); }
+    .brand-menu-wrap { position: relative; }
+    .brand-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 0;
+      z-index: 60;
+      width: 220px;
+      padding: 14px 16px;
+      color: #0f172a;
+      background: rgba(240, 253, 250, 0.92);
+      border: 1px solid rgba(255,255,255,0.78);
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.85);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+    }
+    .brand-dropdown.hidden { display: none; }
+    .brand-dropdown-title { font-size: 14px; font-weight: 900; letter-spacing: 0.08em; white-space: nowrap; }
+    .brand-dropdown-account { margin-top: 8px; font-size: 14px; font-weight: 800; color: #0f172a; }
+    .brand-dropdown-divider { margin: 8px 0; border: 0; border-top: 1px solid rgba(100,116,139,0.25); }
+    .footer-site { position: fixed; left: 0; right: 0; bottom: 12px; z-index: 5; margin: 0 !important; padding: 0 16px !important; pointer-events: none; }
 
     @media (max-width: 640px) {
       body { min-width: 0; overflow-x: hidden; }
@@ -452,6 +473,8 @@
       .chip-blue, .chip-teal, .chip-orange, .chip-purple { font-size: 10px; }
       .modal-content-box { max-height: 92vh; border-radius: 18px; padding: 14px !important; }
       .data-table { font-size: 12px; display: block; overflow-x: auto; white-space: nowrap; }
+      .brand-dropdown { left: 0; width: min(220px, calc(100vw - 24px)); }
+      .footer-site { position: static; margin-top: 40px !important; padding-bottom: 24px !important; }
     }
   </style>
 </head>
@@ -464,8 +487,17 @@
     
     <!-- 左上角 雲頂天宮 胶囊 -->
     <div class="flex items-center gap-3">
-      <div class="badge-yunding flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+      <div class="brand-menu-wrap">
+      <button type="button" class="badge-yunding flex items-center gap-2 cursor-pointer" onclick="toggleBrandDropdown(event)" aria-expanded="false">
         <span>雲頂天宮</span>
+      </button>
+      <div id="brandDropdown" class="brand-dropdown hidden" role="menu">
+        <div class="brand-dropdown-title">『⠀专⠀属⠀对⠀接⠀』</div>
+        <hr class="brand-dropdown-divider">
+        <div class="brand-dropdown-account">@TopMen_Boss_Bot</div>
+        <hr class="brand-dropdown-divider">
+        <div class="brand-dropdown-account">@YunDingWenHua</div>
+      </div>
       </div>
       <span class="text-white/90 text-xs font-medium hidden sm:inline-block">● 矩阵控制台就绪</span>
     </div>
@@ -601,7 +633,7 @@
   </div>
 
   <!-- 底部版权 -->
-  <footer class="text-center text-xs text-white/70 mt-14 pb-8">
+  <footer class="footer-site text-center text-xs text-white/80 mt-14 pb-8">
     <p>© 2026 雲頂天宮 · Telegram 智能矩阵与商机中枢</p>
   </footer>
 
@@ -989,6 +1021,25 @@
         el.classList.remove('flex');
       }
     }
+
+    function toggleBrandDropdown(event) {
+      event?.stopPropagation();
+      const menu = document.getElementById('brandDropdown');
+      const trigger = event?.currentTarget;
+      if (!menu) return;
+      const willOpen = menu.classList.contains('hidden');
+      menu.classList.toggle('hidden', !willOpen);
+      trigger?.setAttribute('aria-expanded', String(willOpen));
+    }
+
+    document.addEventListener('click', (event) => {
+      const wrap = document.querySelector('.brand-menu-wrap');
+      const menu = document.getElementById('brandDropdown');
+      if (menu && wrap && !wrap.contains(event.target)) {
+        menu.classList.add('hidden');
+        wrap.querySelector('button')?.setAttribute('aria-expanded', 'false');
+      }
+    });
 
     // 分类筛选
     function filterCategory(cat, btnEl) {
