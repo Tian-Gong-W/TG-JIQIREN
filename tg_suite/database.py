@@ -303,3 +303,221 @@ def save_intercepted_lead(lead_data: Dict[str, Any]):
 
 init_db()
 init_leads_table()
+
+
+# ================================
+# 监控产品化：规则、消息归档、Bot 目标
+# ================================
+def init_monitor_tables():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.executescript('''
+    CREATE TABLE IF NOT EXISTS keyword_rules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_name TEXT,
+        rule_name TEXT NOT NULL,
+        keyword_value TEXT NOT NULL,
+        match_mode TEXT NOT NULL DEFAULT 'contains',
+        exclude_words TEXT DEFAULT '',
+        sender_filter TEXT DEFAULT '',
+        action TEXT NOT NULL DEFAULT 'monitor',
+        case_sensitive INTEGER NOT NULL DEFAULT 0,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        priority INTEGER NOT NULL DEFAULT 0,
+        remark TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_keyword_rules_enabled ON keyword_rules(enabled, priority);
+    CREATE TABLE IF NOT EXISTS archived_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_name TEXT,
+        chat_id INTEGER,
+        chat_type TEXT,
+        chat_title TEXT,
+        chat_username TEXT,
+        message_id INTEGER,
+        sender_id INTEGER,
+        sender_name TEXT,
+        sender_username TEXT,
+        text TEXT,
+        media_type TEXT,
+        is_outgoing INTEGER DEFAULT 0,
+        is_edited INTEGER DEFAULT 0,
+        is_channel_post INTEGER DEFAULT 0,
+        matched_rule_id INTEGER,
+        matched_keyword TEXT,
+        message_date TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(account_name, chat_id, message_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_archived_messages_created ON archived_messages(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_archived_messages_chat ON archived_messages(chat_id, message_date DESC);
+    CREATE TABLE IF NOT EXISTS bot_notify_targets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        bot_token TEXT NOT NULL,
+        chat_id TEXT NOT NULL,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    ''')
+    conn.commit()
+    conn.close()
+
+
+def list_keyword_rules(account_name: Optional[str] = None) -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    query = "SELECT * FROM keyword_rules"
+    params: List[Any] = []
+    if account_name:
+        query += " WHERE account_name = ? OR account_name IS NULL"
+        params.append(account_name)
+    query += " ORDER BY priority DESC, id DESC"
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def save_keyword_rule(rule: Dict[str, Any]) -> int:
+    conn = get_db_connection()
+    now = datetime.now().isoformat(sep=" ", timespec="seconds")
+    cursor = conn.execute('''
+        INSERT INTO keyword_rules
+        (account_name, rule_name, keyword_value, match_mode, exclude_words,
+         sender_filter, action, case_sensitive, enabled, priority, remark, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        rule.get("account_name"), rule.get("rule_name") or "未命名规则",
+        rule.get("keyword_value", ""), rule.get("match_mode", "contains"),
+        rule.get("exclude_words", ""), rule.get("sender_filter", ""),
+        rule.get("action", "monitor"), 1 if rule.get("case_sensitive") else 0,
+        1 if rule.get("enabled", True) else 0, int(rule.get("priority", 0)),
+        rule.get("remark", ""), now
+    ))
+    conn.commit()
+    rule_id = cursor.lastrowid
+    conn.close()
+    return int(rule_id)
+
+
+def update_keyword_rule(rule_id: int, rule: Dict[str, Any]) -> bool:
+    conn = get_db_connection()
+    now = datetime.now().isoformat(sep=" ", timespec="seconds")
+    cursor = conn.execute('''
+        UPDATE keyword_rules SET account_name=?, rule_name=?, keyword_value=?,
+        match_mode=?, exclude_words=?, sender_filter=?, action=?, case_sensitive=?,
+        enabled=?, priority=?, remark=?, updated_at=? WHERE id=?
+    ''', (
+        rule.get("account_name"), rule.get("rule_name") or "未命名规则",
+        rule.get("keyword_value", ""), rule.get("match_mode", "contains"),
+        rule.get("exclude_words", ""), rule.get("sender_filter", ""),
+        rule.get("action", "monitor"), 1 if rule.get("case_sensitive") else 0,
+        1 if rule.get("enabled", True) else 0, int(rule.get("priority", 0)),
+        rule.get("remark", ""), now, rule_id
+    ))
+    conn.commit()
+    changed = cursor.rowcount > 0
+    conn.close()
+    return changed
+
+
+def delete_keyword_rule(rule_id: int) -> bool:
+    conn = get_db_connection()
+    cursor = conn.execute("DELETE FROM keyword_rules WHERE id = ?", (rule_id,))
+    conn.commit()
+    changed = cursor.rowcount > 0
+    conn.close()
+    return changed
+
+
+def save_archived_message(message: Dict[str, Any]) -> int:
+    conn = get_db_connection()
+    cursor = conn.execute('''
+        INSERT INTO archived_messages
+        (account_name, chat_id, chat_type, chat_title, chat_username, message_id,
+         sender_id, sender_name, sender_username, text, media_type, is_outgoing,
+         is_edited, is_channel_post, matched_rule_id, matched_keyword, message_date)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(account_name, chat_id, message_id) DO UPDATE SET
+          text=excluded.text, is_edited=excluded.is_edited,
+          matched_rule_id=COALESCE(excluded.matched_rule_id, archived_messages.matched_rule_id),
+          matched_keyword=COALESCE(excluded.matched_keyword, archived_messages.matched_keyword)
+    ''', tuple(message.get(key) for key in (
+        "account_name", "chat_id", "chat_type", "chat_title", "chat_username", "message_id",
+        "sender_id", "sender_name", "sender_username", "text", "media_type", "is_outgoing",
+        "is_edited", "is_channel_post", "matched_rule_id", "matched_keyword", "message_date"
+    )))
+    conn.commit()
+    message_id = cursor.lastrowid
+    conn.close()
+    return int(message_id or 0)
+
+
+def query_archived_messages(page: int = 1, page_size: int = 50, **filters: Any) -> Dict[str, Any]:
+    page = max(1, int(page))
+    page_size = min(200, max(1, int(page_size)))
+    conn = get_db_connection()
+    where = []
+    params: List[Any] = []
+    for column in ("account_name", "chat_id", "sender_id"):
+        if filters.get(column) not in (None, ""):
+            where.append(f"{column} = ?")
+            params.append(filters[column])
+    if filters.get("keyword"):
+        where.append("(text LIKE ? OR chat_title LIKE ? OR sender_name LIKE ?)")
+        value = f"%{filters['keyword']}%"
+        params.extend([value, value, value])
+    condition = " WHERE " + " AND ".join(where) if where else ""
+    total = conn.execute(f"SELECT COUNT(*) FROM archived_messages{condition}", params).fetchone()[0]
+    params.extend([page_size, (page - 1) * page_size])
+    rows = conn.execute(
+        f"SELECT * FROM archived_messages{condition} ORDER BY id DESC LIMIT ? OFFSET ?", params
+    ).fetchall()
+    conn.close()
+    return {"total": total, "page": page, "page_size": page_size, "items": [dict(row) for row in rows]}
+
+
+def list_bot_targets() -> List[Dict[str, Any]]:
+    conn = get_db_connection()
+    rows = conn.execute("SELECT id, name, bot_token, chat_id, enabled, created_at, updated_at FROM bot_notify_targets ORDER BY id DESC").fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def save_bot_target(target: Dict[str, Any]) -> int:
+    conn = get_db_connection()
+    cursor = conn.execute('''INSERT INTO bot_notify_targets (name, bot_token, chat_id, enabled, updated_at)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)''', (
+        target.get("name") or "未命名 Bot", target.get("bot_token", ""),
+        target.get("chat_id", ""), 1 if target.get("enabled", True) else 0
+    ))
+    conn.commit()
+    result = int(cursor.lastrowid)
+    conn.close()
+    return result
+
+
+def update_bot_target(target_id: int, target: Dict[str, Any]) -> bool:
+    conn = get_db_connection()
+    cursor = conn.execute("""UPDATE bot_notify_targets SET name=?, bot_token=COALESCE(NULLIF(?, ''), bot_token), chat_id=?, enabled=?, updated_at=CURRENT_TIMESTAMP WHERE id=?""", (
+        target.get("name") or "未命名 Bot", target.get("bot_token", ""), target.get("chat_id", ""),
+        1 if target.get("enabled", True) else 0, target_id
+    ))
+    conn.commit()
+    changed = cursor.rowcount > 0
+    conn.close()
+    return changed
+
+
+def delete_bot_target(target_id: int) -> bool:
+    conn = get_db_connection()
+    cursor = conn.execute("DELETE FROM bot_notify_targets WHERE id = ?", (target_id,))
+    conn.commit()
+    result = cursor.rowcount > 0
+    conn.close()
+    return result
+
+
+init_monitor_tables()
