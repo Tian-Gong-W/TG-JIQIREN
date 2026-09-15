@@ -1,6 +1,8 @@
 import os
 import hmac
 import re
+import base64
+import hashlib
 import tempfile
 import shutil
 import zipfile
@@ -22,7 +24,7 @@ if os.path.exists(env_file):
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional, Any
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, Request, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
@@ -42,7 +44,10 @@ from core.contacts_stories import ContactsAndStoriesManager
 
 try:
     from telethon import TelegramClient
-    from telethon.errors import SessionRevokedError, UserDeactivatedBanError
+    from telethon.errors import (
+        SessionRevokedError, UserDeactivatedBanError, SessionPasswordNeededError,
+        PhoneCodeInvalidError, PhoneCodeExpiredError, PasswordHashInvalidError,
+    )
     import socks
     from opentele.td import TDesktop
     from opentele.api import UseCurrentSession
@@ -54,10 +59,13 @@ AUTH_DISABLED = os.getenv("TG_AUTH_DISABLED", "false").lower() == "true"
 TG_ENV = os.getenv("TG_ENV", "development").lower()
 ADMIN_API_KEY = os.getenv("TG_ADMIN_API_KEY", "")
 OPERATOR_API_KEY = os.getenv("TG_OPERATOR_API_KEY", "")
-
-# 鉴权模式配置
-if TG_ENV == "production" and not ADMIN_API_KEY and not AUTH_DISABLED:
-    ADMIN_API_KEY = "yunding_admin_secret_key"
+ADMIN_USERNAME = os.getenv("TG_ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("TG_ADMIN_PASSWORD", "")
+SESSION_SECRET = os.getenv("TG_SESSION_SECRET", "") or ADMIN_API_KEY or hashlib.sha256(
+    f"{BASE_DIR if 'BASE_DIR' in globals() else __file__}:tg-suite".encode()
+).hexdigest()
+SESSION_COOKIE = "tg_admin_session"
+SESSION_TTL_SECONDS = int(os.getenv("TG_SESSION_TTL_SECONDS", "43200"))
 
 ACCOUNT_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 
@@ -69,27 +77,50 @@ def validate_account_name(account_name: str) -> str:
     return account_name
 
 
+def _create_session_token(role: str) -> str:
+    expires = int(time.time()) + SESSION_TTL_SECONDS
+    payload = f"{role}:{expires}".encode()
+    signature = hmac.new(SESSION_SECRET.encode(), payload, hashlib.sha256).hexdigest().encode()
+    return base64.urlsafe_b64encode(payload + b":" + signature).decode()
+
+
+def _verify_session_token(token: str) -> Optional[str]:
+    try:
+        raw = base64.urlsafe_b64decode(token.encode()).decode()
+        role, expires_text, signature = raw.split(":", 2)
+        payload = f"{role}:{expires_text}".encode()
+        expected = hmac.new(SESSION_SECRET.encode(), payload, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(signature, expected) or int(expires_text) < int(time.time()):
+            return None
+        return role if role in {"admin", "operator"} else None
+    except (ValueError, TypeError):
+        return None
+
+
+def _request_role(request: Request, credentials: HTTPAuthorizationCredentials | None = None) -> Optional[str]:
+    if AUTH_DISABLED:
+        return "admin"
+    if credentials and credentials.scheme.lower() == "bearer":
+        token = credentials.credentials
+        if ADMIN_API_KEY and hmac.compare_digest(token, ADMIN_API_KEY):
+            return "admin"
+        if OPERATOR_API_KEY and hmac.compare_digest(token, OPERATOR_API_KEY):
+            return "operator"
+    cookie_token = request.cookies.get(SESSION_COOKIE, "")
+    return _verify_session_token(cookie_token) if cookie_token else None
+
+
 def require_auth(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ) -> str:
-    """验证 Bearer API Key，并返回 admin 或 operator 角色。"""
-    if AUTH_DISABLED and TG_ENV != "production":
-        return "admin"
-    if not credentials or credentials.scheme.lower() != "bearer":
-        raise HTTPException(
-            status_code=401,
-            detail="需要 Bearer API Key",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    token = credentials.credentials
-    if ADMIN_API_KEY and hmac.compare_digest(token, ADMIN_API_KEY):
-        return "admin"
-    if OPERATOR_API_KEY and hmac.compare_digest(token, OPERATOR_API_KEY):
-        return "operator"
+    """验证管理员 Cookie 或 Bearer API Key。"""
+    role = _request_role(request, credentials)
+    if role:
+        return role
     raise HTTPException(
         status_code=401,
-        detail="API Key 无效",
+        detail="需要登录或 Bearer API Key",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -101,12 +132,63 @@ def require_admin(role: str = Depends(require_auth)) -> str:
     return role
 
 
+
+class AuthLoginRequest(BaseModel):
+    username: str
+    password: str
+
+class PhoneLoginStartRequest(BaseModel):
+    phone_number: str
+    remark: str = ""
+
+class PhoneLoginCodeRequest(BaseModel):
+    account_name: str
+    code: str
+
+class PhoneLoginPasswordRequest(BaseModel):
+    account_name: str
+    password: str
+
+class KeywordRuleRequest(BaseModel):
+    account_name: Optional[str] = None
+    rule_name: str = "未命名规则"
+    keyword_value: str
+    match_mode: str = "contains"
+    exclude_words: str = ""
+    sender_filter: str = ""
+    action: str = "monitor"
+    case_sensitive: bool = False
+    enabled: bool = True
+    priority: int = 0
+    remark: str = ""
+
+class BotTargetRequest(BaseModel):
+    name: str = "未命名 Bot"
+    bot_token: str
+    chat_id: str
+    enabled: bool = True
+
 app = FastAPI(
     title="Telegram 一体化运营控制台",
-    dependencies=[Depends(require_auth)],
     docs_url=None if TG_ENV == "production" else "/docs",
     redoc_url=None if TG_ENV == "production" else "/redoc",
 )
+
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok", "service": "telegram-control-plane"}
+
+@app.middleware("http")
+async def protect_api_routes(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("/api/") and path != "/api/auth/login":
+        credentials = None
+        authorization = request.headers.get("authorization", "")
+        if authorization.lower().startswith("bearer "):
+            credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=authorization[7:].strip())
+        if not _request_role(request, credentials):
+            return JSONResponse({"detail": "需要登录或 Bearer API Key"}, status_code=401)
+    return await call_next(request)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ACCOUNTS_DIR = os.path.join(BASE_DIR, "accounts")
@@ -129,6 +211,8 @@ DEFAULT_API_HASH = os.getenv("TG_API_HASH", "")
 # 全局任务与监听器状态
 ACTIVE_INTERCEPTOR = None
 ACTIVE_POSTER = None
+ACTIVE_MONITORS: Dict[str, Dict[str, Any]] = {}
+LOGIN_RUNTIMES: Dict[str, Dict[str, Any]] = {}
 
 # ================================
 # 辅助函数：获取客户端实例
@@ -227,6 +311,27 @@ def _copy_session_assets(source: Path, destination: Path) -> None:
             path.chmod(0o600)
 
 
+@app.post("/api/auth/login")
+async def auth_login(payload: AuthLoginRequest, response: Response):
+    password_matches = bool(ADMIN_PASSWORD) and hmac.compare_digest(payload.password, ADMIN_PASSWORD)
+    api_key_matches = bool(ADMIN_API_KEY) and hmac.compare_digest(payload.password, ADMIN_API_KEY)
+    if not hmac.compare_digest(payload.username, ADMIN_USERNAME) or not (password_matches or api_key_matches):
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+    response.set_cookie(
+        SESSION_COOKIE, _create_session_token("admin"), max_age=SESSION_TTL_SECONDS,
+        httponly=True, samesite="strict", secure=TG_ENV == "production",
+    )
+    return {"status": "success", "role": "admin", "username": ADMIN_USERNAME}
+
+@app.get("/api/auth/me")
+async def auth_me(role: str = Depends(require_auth)):
+    return {"authenticated": True, "role": role, "username": ADMIN_USERNAME if role == "admin" else "operator"}
+
+@app.post("/api/auth/logout")
+async def auth_logout(response: Response):
+    response.delete_cookie(SESSION_COOKIE)
+    return {"status": "success"}
+
 # ================================
 # 1. 仪表盘统计 API
 # ================================
@@ -253,6 +358,131 @@ async def get_dashboard_stats():
         "sources_count": db_stats["sources_count"]
     }
 
+
+def _account_name_from_phone(phone: str) -> str:
+    normalized = re.sub(r"[^0-9]", "", phone or "")
+    if not 6 <= len(normalized) <= 20:
+        raise HTTPException(status_code=400, detail="手机号格式无效")
+    return normalized
+
+
+def _write_account_metadata(account_name: str, data: Dict[str, Any]) -> None:
+    folder = Path(ACCOUNTS_DIR) / account_name
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / "account.json"
+    current: Dict[str, Any] = {}
+    if path.exists():
+        try:
+            current = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            current = {}
+    current.update(data)
+    path.write_text(json.dumps(current, ensure_ascii=False, indent=2), encoding="utf-8")
+    path.chmod(0o600)
+
+
+@app.post("/api/accounts/login/start")
+async def start_phone_login(payload: PhoneLoginStartRequest, _: str = Depends(require_admin)):
+    if DEFAULT_API_ID <= 0 or not DEFAULT_API_HASH:
+        raise HTTPException(status_code=400, detail="请先配置 TG_API_ID/TG_API_HASH")
+    account_name = _account_name_from_phone(payload.phone_number)
+    phone = "+" + account_name
+    previous = LOGIN_RUNTIMES.pop(account_name, None)
+    if previous and previous.get("client"):
+        await previous["client"].disconnect()
+    client = TelegramClient(str(Path(SESSIONS_DIR) / account_name), DEFAULT_API_ID, DEFAULT_API_HASH)
+    try:
+        await client.connect()
+        if await client.is_user_authorized():
+            me = await client.get_me()
+            _write_account_metadata(account_name, {
+                "phone": phone, "remark": payload.remark.strip(), "user_id": me.id,
+                "username": me.username, "first_name": me.first_name, "last_name": me.last_name,
+                "authorized": True, "last_login_at": datetime.now().isoformat(),
+            })
+            await client.disconnect()
+            return {"account_name": account_name, "state": "logged_in", "message": "账号已经登录"}
+        sent = await client.send_code_request(phone)
+        LOGIN_RUNTIMES[account_name] = {
+            "client": client, "phone": phone, "phone_code_hash": sent.phone_code_hash,
+            "created_at": time.time(), "remark": payload.remark.strip(),
+        }
+        _write_account_metadata(account_name, {"phone": phone, "remark": payload.remark.strip(), "authorized": False})
+        return {"account_name": account_name, "state": "waiting_code", "message": "验证码已发送"}
+    except Exception as exc:
+        await client.disconnect()
+        raise HTTPException(status_code=400, detail=f"发起登录失败: {exc}") from exc
+
+
+@app.post("/api/accounts/login/code")
+async def submit_phone_code(payload: PhoneLoginCodeRequest, _: str = Depends(require_admin)):
+    validate_account_name(payload.account_name)
+    runtime = LOGIN_RUNTIMES.get(payload.account_name)
+    if not runtime:
+        raise HTTPException(status_code=400, detail="登录流程已失效，请重新发送验证码")
+    client = runtime["client"]
+    try:
+        await client.sign_in(
+            phone=runtime["phone"], code=payload.code.strip(),
+            phone_code_hash=runtime["phone_code_hash"],
+        )
+    except SessionPasswordNeededError:
+        return {"account_name": payload.account_name, "state": "waiting_password", "message": "请输入二步验证密码"}
+    except (PhoneCodeInvalidError, PhoneCodeExpiredError) as exc:
+        raise HTTPException(status_code=400, detail=f"验证码无效或已过期: {exc}") from exc
+    return await _finalize_phone_login(payload.account_name)
+
+
+@app.post("/api/accounts/login/password")
+async def submit_phone_password(payload: PhoneLoginPasswordRequest, _: str = Depends(require_admin)):
+    validate_account_name(payload.account_name)
+    runtime = LOGIN_RUNTIMES.get(payload.account_name)
+    if not runtime:
+        raise HTTPException(status_code=400, detail="登录流程已失效，请重新发送验证码")
+    try:
+        await runtime["client"].sign_in(password=payload.password)
+    except PasswordHashInvalidError as exc:
+        raise HTTPException(status_code=400, detail="二步验证密码错误") from exc
+    return await _finalize_phone_login(payload.account_name)
+
+
+async def _finalize_phone_login(account_name: str) -> Dict[str, Any]:
+    runtime = LOGIN_RUNTIMES.pop(account_name)
+    client = runtime["client"]
+    me = await client.get_me()
+    _write_account_metadata(account_name, {
+        "phone": runtime["phone"], "remark": runtime.get("remark", ""),
+        "user_id": me.id, "username": me.username, "first_name": me.first_name,
+        "last_name": me.last_name, "authorized": True,
+        "last_login_at": datetime.now().isoformat(),
+    })
+    await client.disconnect()
+    return {
+        "account_name": account_name, "state": "logged_in", "message": "登录成功",
+        "account": {"phone": runtime["phone"], "username": me.username, "display_name": " ".join(filter(None, [me.first_name, me.last_name]))},
+    }
+
+
+@app.delete("/api/accounts/{account_name}")
+async def delete_account(account_name: str, delete_session_files: bool = False, _: str = Depends(require_admin)):
+    validate_account_name(account_name)
+    runtime = ACTIVE_MONITORS.pop(account_name, None)
+    if runtime:
+        if runtime.get("task") and not runtime["task"].done():
+            runtime["task"].cancel()
+        if runtime.get("client"):
+            await runtime["client"].disconnect()
+    folder = Path(ACCOUNTS_DIR) / account_name
+    if folder.exists():
+        shutil.rmtree(folder)
+    if delete_session_files:
+        for suffix in (".session", ".session-journal"):
+            session_file = Path(SESSIONS_DIR) / f"{account_name}{suffix}"
+            if session_file.exists():
+                session_file.unlink()
+    return {"status": "success", "account_name": account_name}
+
+
 # ================================
 # 2. 账号资产与管理 API
 # ================================
@@ -274,10 +504,31 @@ async def list_accounts():
                 with open(proxy_file, "r", encoding="utf-8") as f:
                     proxy_info = f.read().strip()
 
+            session_file = os.path.join(SESSIONS_DIR, name + ".session")
+            runtime = ACTIVE_MONITORS.get(name, {})
+            metadata = {}
+            metadata_file = Path(acc_path) / "account.json"
+            if metadata_file.exists():
+                try:
+                    metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    metadata = {}
+            monitoring = bool(runtime.get("task") and not runtime["task"].done())
             accounts.append({
                 "name": name,
+                "phone": metadata.get("phone") or name,
+                "username": metadata.get("username"),
+                "display_name": " ".join(filter(None, [metadata.get("first_name"), metadata.get("last_name")])),
+                "remark": metadata.get("remark", ""),
                 "has_tdata": has_tdata,
-                "proxy": proxy_info or "未绑定代理"
+                "type": "TData" if has_tdata else "Session",
+                "dc_id": metadata.get("dc_id", 2),
+                "proxy": proxy_info or "未绑定代理",
+                "authorized": bool(metadata.get("authorized") or os.path.exists(session_file)),
+                "connected": monitoring,
+                "monitoring": monitoring,
+                "last_login_at": metadata.get("last_login_at"),
+                "status": "monitoring" if monitoring else ("ready" if os.path.exists(session_file) else "pending")
             })
     return accounts
 
@@ -740,6 +991,122 @@ async def get_intercepted_leads(limit: int = 50):
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+
+@app.post("/api/accounts/{account_name}/monitor/start")
+async def start_account_monitor(account_name: str, _: str = Depends(require_admin)):
+    validate_account_name(account_name)
+    existing = ACTIVE_MONITORS.get(account_name, {})
+    if existing.get("task") and not existing["task"].done():
+        return {"status": "success", "message": "监听已经在运行", "account_name": account_name}
+    try:
+        client = get_client_for_account(account_name)
+        await client.start()
+        interceptor = KeywordInterceptor(client=client, keywords=[], account_name=account_name, archive_all=True)
+        task = asyncio.create_task(interceptor.start_listening())
+        ACTIVE_MONITORS[account_name] = {"client": client, "task": task, "interceptor": interceptor}
+        return {"status": "success", "message": "账号监听已启动", "account_name": account_name}
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"监听启动失败: {exc}") from exc
+
+@app.post("/api/accounts/{account_name}/monitor/stop")
+async def stop_account_monitor(account_name: str, _: str = Depends(require_admin)):
+    validate_account_name(account_name)
+    runtime = ACTIVE_MONITORS.pop(account_name, None)
+    if not runtime:
+        return {"status": "success", "message": "监听未运行", "account_name": account_name}
+    task = runtime.get("task")
+    if task and not task.done():
+        task.cancel()
+    client = runtime.get("client")
+    if client:
+        await client.disconnect()
+    return {"status": "success", "message": "账号监听已停止", "account_name": account_name}
+
+@app.post("/api/accounts/{account_name}/reconnect")
+async def reconnect_account(account_name: str, _: str = Depends(require_admin)):
+    validate_account_name(account_name)
+    runtime = ACTIVE_MONITORS.get(account_name)
+    if runtime and runtime.get("client"):
+        await runtime["client"].disconnect()
+        ACTIVE_MONITORS.pop(account_name, None)
+    try:
+        client = get_client_for_account(account_name)
+        await client.connect()
+        authorized = await client.is_user_authorized()
+        await client.disconnect()
+        return {"status": "success" if authorized else "unauthorized", "authorized": authorized, "account_name": account_name}
+    except Exception as exc:
+        return {"status": "error", "authorized": False, "detail": str(exc), "account_name": account_name}
+
+# ================================
+# 监控产品化 API：规则、历史消息、Bot 目标
+# ================================
+@app.get("/api/monitor/rules")
+async def list_monitor_rules(account_name: Optional[str] = None, _: str = Depends(require_auth)):
+    return database.list_keyword_rules(account_name)
+
+@app.post("/api/monitor/rules")
+async def create_monitor_rule(rule: KeywordRuleRequest, _: str = Depends(require_admin)):
+    if not rule.keyword_value.strip():
+        raise HTTPException(status_code=400, detail="关键词不能为空")
+    if rule.match_mode not in {"exact", "contains", "regex", "fuzzy"}:
+        raise HTTPException(status_code=400, detail="不支持的匹配方式")
+    if rule.action not in {"monitor", "exclude"}:
+        raise HTTPException(status_code=400, detail="不支持的规则动作")
+    return {"id": database.save_keyword_rule(rule.model_dump()), "status": "success"}
+
+@app.put("/api/monitor/rules/{rule_id}")
+async def update_monitor_rule(rule_id: int, rule: KeywordRuleRequest, _: str = Depends(require_admin)):
+    if not database.update_keyword_rule(rule_id, rule.model_dump()):
+        raise HTTPException(status_code=404, detail="规则不存在")
+    return {"status": "success", "id": rule_id}
+
+@app.delete("/api/monitor/rules/{rule_id}")
+async def delete_monitor_rule(rule_id: int, _: str = Depends(require_admin)):
+    if not database.delete_keyword_rule(rule_id):
+        raise HTTPException(status_code=404, detail="规则不存在")
+    return {"status": "success"}
+
+@app.get("/api/monitor/messages")
+async def list_monitor_messages(
+    page: int = 1, page_size: int = 50, account_name: Optional[str] = None,
+    chat_id: Optional[int] = None, sender_id: Optional[int] = None,
+    keyword: Optional[str] = None, _: str = Depends(require_auth),
+):
+    return database.query_archived_messages(
+        page=page, page_size=page_size, account_name=account_name,
+        chat_id=chat_id, sender_id=sender_id, keyword=keyword,
+    )
+
+@app.get("/api/monitor/bot-targets")
+async def list_monitor_bot_targets(_: str = Depends(require_auth)):
+    targets = database.list_bot_targets()
+    for target in targets:
+        token = target.get("bot_token", "")
+        target["bot_token"] = (token[:6] + "…") if len(token) > 6 else "***"
+    return targets
+
+@app.post("/api/monitor/bot-targets")
+async def create_monitor_bot_target(target: BotTargetRequest, _: str = Depends(require_admin)):
+    if not target.bot_token.strip() or not target.chat_id.strip():
+        raise HTTPException(status_code=400, detail="Bot Token 和 Chat ID 不能为空")
+    return {"id": database.save_bot_target(target.model_dump()), "status": "success"}
+
+@app.put("/api/monitor/bot-targets/{target_id}")
+async def update_monitor_bot_target(target_id: int, target: BotTargetRequest, _: str = Depends(require_admin)):
+    if not target.chat_id.strip():
+        raise HTTPException(status_code=400, detail="Chat ID 不能为空")
+    if not database.update_bot_target(target_id, target.model_dump()):
+        raise HTTPException(status_code=404, detail="Bot 通知目标不存在")
+    return {"status": "success", "id": target_id}
+
+@app.delete("/api/monitor/bot-targets/{target_id}")
+async def delete_monitor_bot_target(target_id: int, _: str = Depends(require_admin)):
+    if not database.delete_bot_target(target_id):
+        raise HTTPException(status_code=404, detail="Bot 通知目标不存在")
+    return {"status": "success"}
 
 # 挂载静态网页
 app.mount("/", StaticFiles(directory=os.path.join(BASE_DIR, "static"), html=True), name="static")

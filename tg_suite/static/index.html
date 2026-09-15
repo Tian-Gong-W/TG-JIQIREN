@@ -82,73 +82,162 @@
 
     /* 分类切换胶囊栏 */
     .category-capsule-bar {
-      background: #ffffff;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.9);
       border-radius: 9999px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      padding: 5px 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.9);
+      padding: 4px;
+      gap: 2px;
     }
     .cat-btn {
+      flex: 1 1 0;
+      min-width: 0;
       border-radius: 9999px;
-      padding: 6px 16px;
-      font-weight: 600;
-      font-size: 13.5px;
-      color: #4b5563;
+      padding: 10px 12px;
+      font-weight: 800;
+      font-size: 15px;
+      color: #475569;
+      white-space: nowrap;
       transition: all 0.2s ease;
     }
     .cat-btn:hover {
-      color: #00c5c8;
+      color: #00aeb2;
       background: #f0fdfa;
     }
     .cat-btn.active {
       color: #ff6b35;
-      font-weight: 700;
+      font-weight: 900;
       background: #fff7ed;
+      box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
     }
 
     /* 独角数卡经典暗黑渐变发光圆盘 (精简小巧版) */
+    /* 功能胶囊不再使用大图标，保留兼容类名避免影响旧结构 */
     .dark-avatar-circle {
-      width: 48px;
-      height: 48px;
-      border-radius: 9999px;
-      background: radial-gradient(circle at 35% 35%, #2a1548 0%, #0f172a 100%);
-      border: 1.5px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      position: relative;
+      display: none;
     }
+
+    .module-nav-row {
+      width: min(calc(100% - 32px), 1150px);
+      margin: 0 auto 16px;
+      display: grid;
+      grid-template-columns: minmax(170px, 1fr) minmax(520px, 760px) minmax(230px, 1fr);
+      align-items: center;
+      gap: 18px;
+    }
+    .account-refresh-btn {
+      border: 0;
+      padding: 4px 0;
+      background: transparent;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 800;
+      text-shadow: 0 2px 8px rgba(15,23,42,0.16);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .account-refresh-btn:hover { color: rgba(255,255,255,0.78); }
+    .account-status-actions { display: flex; align-items: center; gap: 16px; }
+    .account-online-pill {
+      padding: 4px 0;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 800;
+      text-shadow: 0 2px 8px rgba(15,23,42,0.16);
+      white-space: nowrap;
+    }
+    .account-add-btn {
+      border: 0;
+      padding: 4px 0;
+      background: transparent;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 800;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-shadow: 0 2px 8px rgba(15,23,42,0.16);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .account-add-btn:hover { color: rgba(255,255,255,0.78); }
+    @media (max-width: 980px) {
+      .module-nav-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .account-refresh-btn { justify-self: start; }
+      .account-status-actions { justify-self: end; }
+    }
+    @media (max-width: 640px) {
+      .module-nav-row { width: calc(100% - 24px); }
+      .account-refresh-btn { font-size: 13px; }
+      .account-status-actions { gap: 5px; }
+    }
+
+    /* 五个父级功能模块：子功能收纳在模块内部 */
+    .module-card {
+      display: none;
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 22px;
+      padding: 7px;
+      backdrop-filter: blur(16px) saturate(135%);
+      -webkit-backdrop-filter: blur(16px) saturate(135%);
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255,255,255,0.55);
+    }
+    .module-heading {
+      display: flex;
+      font-size: 18px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 7px 5px 10px;
+      color: #0f172a;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+    }
+    .module-heading span { color: rgba(15, 23, 42, 0.58); font-size: 10px; font-weight: 600; }
+    .module-items { display: grid; gap: 5px; }
+    .module-item { min-height: 40px !important; border-radius: 9999px !important; background: rgba(255,255,255,0.68) !important; }
 
     /* 精简小巧的功能卡片 (Compact Mini-Card) */
     .mini-func-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 12px 16px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.62);
+      border-radius: 9999px;
+      padding: 5px 7px 5px 14px;
+      box-shadow: 0 5px 18px rgba(15, 23, 42, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(16px) saturate(135%);
+      -webkit-backdrop-filter: blur(16px) saturate(135%);
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      min-height: 76px;
+      gap: 7px;
+      min-height: 44px;
     }
     .mini-func-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-      border-color: #00c5c8;
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+      border-color: rgba(255, 255, 255, 0.95);
     }
 
+
+    .mini-func-card h3 {
+      font-size: 12px;
+    }
+    .mini-func-card .text-\[11.5px\] {
+      font-size: 10px;
+    }
     /* 精简绿色操作按钮 */
     .btn-action-green {
-      background: #22c55e;
+      background: rgba(22, 163, 74, 0.92);
       color: #ffffff;
       font-weight: 700;
-      font-size: 12.5px;
-      padding: 7px 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(34, 197, 94, 0.3);
+      font-size: 10px;
+      padding: 5px 9px;
+      border-radius: 9999px;
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.24);
       transition: all 0.15s ease;
       white-space: nowrap;
       cursor: pointer;
@@ -169,43 +258,91 @@
     .chip-blue {
       background: #2563eb;
       color: #ffffff;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
-      padding: 1.5px 7px;
-      border-radius: 4px;
+      padding: 1px 6px;
+      border-radius: 9999px;
       letter-spacing: 0.2px;
       display: inline-block;
     }
     .chip-teal {
       background: #0284c7;
       color: #ffffff;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
-      padding: 1.5px 7px;
-      border-radius: 4px;
+      padding: 1px 6px;
+      border-radius: 9999px;
       letter-spacing: 0.2px;
       display: inline-block;
     }
     .chip-orange {
       background: #ea580c;
       color: #ffffff;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
-      padding: 1.5px 7px;
-      border-radius: 4px;
+      padding: 1px 6px;
+      border-radius: 9999px;
       letter-spacing: 0.2px;
       display: inline-block;
     }
     .chip-purple {
       background: #7c3aed;
       color: #ffffff;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
-      padding: 1.5px 7px;
-      border-radius: 4px;
+      padding: 1px 6px;
+      border-radius: 9999px;
       letter-spacing: 0.2px;
       display: inline-block;
     }
+
+    .module-popover {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.25);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .module-popover.hidden { display: none; }
+    .module-popover-panel {
+      width: min(94vw, 620px);
+      max-height: 78vh;
+      overflow: auto;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 24px;
+      background: rgba(240, 253, 250, 0.78);
+      box-shadow: 0 24px 60px rgba(15,23,42,0.25), inset 0 1px 0 rgba(255,255,255,0.8);
+      backdrop-filter: blur(22px) saturate(140%);
+      -webkit-backdrop-filter: blur(22px) saturate(140%);
+    }
+    .module-popover-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 4px 10px 8px;
+      color: #0f172a;
+    }
+    .module-popover-header h3 { margin: 0; font-size: 18px; font-weight: 900; }
+    .module-popover-close {
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 9999px;
+      background: rgba(255,255,255,0.72);
+      color: #475569;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .module-popover-close:hover { background: #fff; color: #0f172a; }
+    .module-popover-body { display: grid; gap: 7px; }
+    .module-popover-body .module-item { display: flex !important; }
 
     /* 模态弹窗系统 */
     .modal-backdrop {
@@ -320,18 +457,20 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 3. 分类切换胶囊栏 (Tabs) -->
+  <!-- 3. 五个父模块与账号状态同排 -->
   <!-- ========================================== -->
-  <div class="flex justify-center px-4 mb-7">
+  <div class="module-nav-row">
+    <button id="sectionTitle" type="button" onclick="refreshAccountStatus()" class="account-refresh-btn">↻ 刷新账号状态</button>
     <div class="category-capsule-bar flex items-center flex-wrap justify-center gap-1">
-      <button onclick="filterCategory('all', this)" class="cat-btn active">全部</button>
-      <button onclick="filterCategory('accounts', this)" class="cat-btn">矩阵号池</button>
+      <button onclick="filterCategory('accounts', this)" class="cat-btn active">账号中心</button>
       <button onclick="filterCategory('monitor', this)" class="cat-btn">商机雷达</button>
-      <button onclick="filterCategory('marketing', this)" class="cat-btn">批量营销</button>
-      <button onclick="filterCategory('dm', this)" class="cat-btn">精准私信</button>
-      <button onclick="filterCategory('groups', this)" class="cat-btn">采集加群</button>
-      <button onclick="filterCategory('leads', this)" class="cat-btn">线索数据库</button>
+      <button onclick="filterCategory('marketing', this)" class="cat-btn">营销触达</button>
+      <button onclick="filterCategory('data', this)" class="cat-btn">数据中心</button>
       <button onclick="filterCategory('settings', this)" class="cat-btn">系统设置</button>
+    </div>
+    <div class="account-status-actions">
+      <span class="account-online-pill">在线账号: <span id="statActiveAccounts" class="font-bold text-yellow-300 font-mono">0</span> / <span id="statTotalAccounts" class="font-mono">0</span></span>
+      <button type="button" onclick="openModal('modal-batch-import')" class="account-add-btn">＋ 加入账号</button>
     </div>
   </div>
 
@@ -340,265 +479,72 @@
   <!-- ========================================== -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6">
     
-    <!-- 区块标题栏 -->
-    <div class="flex items-center justify-between mb-4 text-white">
-      <div class="flex items-center gap-2 text-lg font-bold">
-        <span>🛒</span>
-        <h2 id="sectionTitle" class="tracking-wide text-white drop-shadow-sm text-base sm:text-lg">核心功能中枢</h2>
-      </div>
-      <div class="text-xs bg-white/20 border border-white/30 px-3 py-1 rounded-full font-medium shadow-sm">
-        在线账号: <span id="statActiveAccounts" class="font-bold text-yellow-300 font-mono">0</span> / <span id="statTotalAccounts" class="font-mono">0</span>
-      </div>
-    </div>
-
     <!-- 卡片网格：经典独角暗黑圆盘 + 精简紧凑小模块 (3列优雅排版) -->
     <div id="cardGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-w-6xl mx-auto">
 
-      <!-- 1. 批量导号与测活 -->
-      <div class="mini-func-card" data-category="accounts" data-keywords="导号 导入 测活 tdata session 批量 上传 zip">
-        <div class="dark-avatar-circle">
-          <svg class="w-5 h-5 text-fuchsia-400 drop-shadow-[0_0_8px_rgba(232,121,249,0.85)]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6.4-4.8-6.4 4.8 2.4-7.2-6-4.8h7.6z"/>
-          </svg>
-        </div>
-        <div class="flex-1 min-w-0 pl-0.5">
-          <div class="flex items-center gap-1.5 flex-wrap mb-1">
-            <h3 class="font-bold text-slate-900 text-sm truncate">批量导号与测活</h3>
-            <span class="chip-blue">自动测活</span>
-            <span class="chip-teal">支持ZIP拖拽</span>
+      <!-- 1. 账号中心：账号导入与资产管理 -->
+      <section class="module-card" data-category="accounts" data-keywords="账号 导入 测活 tdata session 资产 验证码 spambot">
+        <div class="module-heading"><strong>账号中心</strong><span>导入 · 管理 · 风控</span></div>
+        <div class="module-items">
+          <div class="mini-func-card module-item" data-keywords="导号 导入 测活 tdata session 批量 上传 zip">
+            <div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">批量导号与测活</h3><span class="chip-blue">自动测活</span><span class="chip-teal">ZIP</span></div><div class="text-[11.5px] text-slate-500 truncate">已纳管: <span id="cardAccSummary" class="text-slate-800 font-bold font-mono">0 个账号</span></div></div>
+            <button onclick="openModal('modal-batch-import')" class="btn-action-green">批量导入</button>
           </div>
-          <div class="text-[11.5px] text-slate-500 truncate">
-            已纳管: <span id="cardAccSummary" class="text-slate-800 font-bold font-mono">0 个账号</span>
+          <div class="mini-func-card module-item" data-keywords="账号 矩阵 资产 验证码 封禁 spambot">
+            <div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">账号资产管理</h3><span class="chip-blue">多号轮换</span><span class="chip-teal">验证码</span></div><div class="text-[11.5px] text-slate-500 truncate">桌面启动 · Spambot 限制查询</div></div>
+            <button onclick="openModal('modal-accounts')" class="btn-action-green">管理账号</button>
           </div>
         </div>
-        <div>
-          <button onclick="openModal('modal-batch-import')" class="btn-action-green">
-            + 批量导入
-          </button>
-        </div>
-      </div>
+      </section>
 
-      <!-- 2. 账号资产中枢 -->
-      <div class="mini-func-card" data-category="accounts" data-keywords="账号 矩阵 资产 验证码 封禁 spambot">
-        <div class="dark-avatar-circle">
-          <svg class="w-5 h-5 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.85)]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-          </svg>
+      <!-- 2. 商机雷达：关键词监听与 Bot 通知 -->
+      <section class="module-card" data-category="monitor" data-keywords="商机 关键词 监听 截流 需求 监控 bot 通知 告警">
+        <div class="module-heading"><strong>商机雷达</strong><span>监听 · 告警 · 截流</span></div>
+        <div class="module-items">
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">关键词监听</h3><span class="chip-orange">实时监听</span><span class="chip-blue">正则匹配</span></div><div class="text-[11.5px] text-slate-500 truncate">关键词/模糊匹配 · 排除词过滤</div></div><button onclick="openModal('modal-monitor')" class="btn-action-green">开启雷达</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">Bot 实时推送</h3><span class="chip-blue">秒级推送</span><span class="chip-teal">私聊/群组</span></div><div class="text-[11.5px] text-slate-500 truncate">抓到客户自动通知手机</div></div><button onclick="openModal('modal-bot')" class="btn-action-green">配置 Bot</button></div>
         </div>
-        <div class="flex-1 min-w-0 pl-0.5">
-          <div class="flex items-center gap-1.5 flex-wrap mb-1">
-            <h3 class="font-bold text-slate-900 text-sm truncate">账号资产中枢</h3>
-            <span class="chip-blue">多号轮换</span>
-            <span class="chip-teal">提取验证码</span>
-          </div>
-          <div class="text-[11.5px] text-slate-500 truncate">
-            桌面启动 · Spambot 限制查询
-          </div>
-        </div>
-        <div>
-          <button onclick="openModal('modal-accounts')" class="btn-action-green">
-            管理账号
-          </button>
-        </div>
-      </div>
+      </section>
 
-      <!-- 3. 商机关键词雷达 -->
-      <div class="mini-func-card" data-category="monitor" data-keywords="商机 关键词 监听 截流 需求 监控">
-        <div class="dark-avatar-circle">
-          <svg class="w-5 h-5 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.85)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/>
-            <line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/>
-          </svg>
+      <!-- 3. 营销触达：群发、私信与频道克隆 -->
+      <section class="module-card" data-category="marketing" data-keywords="群发 批量 营销 spintax 私信 私聊 截流 克隆 频道 搬运 替换">
+        <div class="module-heading"><strong>营销触达</strong><span>群发 · 私信 · 克隆</span></div>
+        <div class="module-items">
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">Spintax 批量群发</h3><span class="chip-blue">变体</span><span class="chip-teal">多号轮换</span></div><div class="text-[11.5px] text-slate-500 truncate">随机延时 · 定时推流</div></div><button onclick="openModal('modal-sender')" class="btn-action-green">发起群发</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">精准私信触达</h3><span class="chip-orange">商机联动</span><span class="chip-blue">自动打招呼</span></div><div class="text-[11.5px] text-slate-500 truncate">抓到意向客户即刻私信</div></div><button onclick="openModal('modal-dm')" class="btn-action-green">配置私信</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">频道内容克隆</h3><span class="chip-blue">去水印</span><span class="chip-teal">规则替换</span></div><div class="text-[11.5px] text-slate-500 truncate">复刻同行频道图文内容</div></div><button onclick="openModal('modal-cloner')" class="btn-action-green">开始克隆</button></div>
         </div>
-        <div class="flex-1 min-w-0 pl-0.5">
-          <div class="flex items-center gap-1.5 flex-wrap mb-1">
-            <h3 class="font-bold text-slate-900 text-sm truncate">商机关键词雷达</h3>
-            <span class="chip-orange">实时监听</span>
-            <span class="chip-blue">Bot告警</span>
-          </div>
-          <div class="text-[11.5px] text-slate-500 truncate">
-            正则/模糊匹配 · 排除词过滤
-          </div>
-        </div>
-        <div>
-          <button onclick="openModal('modal-monitor')" class="btn-action-green">
-            开启雷达
-          </button>
-        </div>
-      </div>
+      </section>
 
-      <!-- 4. Bot 实时告警推送 -->
-      <div class="mini-func-card" data-category="monitor" data-keywords="bot 通知 告警 机器人 手机 推送">
-        <div class="dark-avatar-circle">
-          <svg class="w-5 h-5 text-teal-300 drop-shadow-[0_0_8px_rgba(94,234,212,0.85)]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7v1a3 3 0 01-3 3h-1v1a2 2 0 01-2 2H9a2 2 0 01-2-2v-1H6a3 3 0 01-3-3v-1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2zM7.5 13a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm9 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/>
-          </svg>
+      <!-- 4. 数据中心：受众采集与线索数据库 -->
+      <section class="module-card" data-category="data" data-keywords="采集 加群 成员 爬虫 进群 拉群 数据库 线索 归档 sqlite 导出">
+        <div class="module-heading"><strong>数据中心</strong><span>采集 · 沉淀 · 导出</span></div>
+        <div class="module-items">
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">受众采集与加群</h3><span class="chip-blue">精准提取</span><span class="chip-teal">自动进群</span></div><div class="text-[11.5px] text-slate-500 truncate">提取同行群活跃精准客户</div></div><button onclick="openModal('modal-scraper')" class="btn-action-green">采集/加群</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">商机线索数据库</h3><span class="chip-purple">永久归档</span><span class="chip-teal">SQLite</span></div><div class="text-[11.5px] text-slate-500 truncate">历史追溯 · 一键导出</div></div><button onclick="openModal('modal-archive')" class="btn-action-green">查看归档</button></div>
         </div>
-        <div class="flex-1 min-w-0 pl-0.5">
-          <div class="flex items-center gap-1.5 flex-wrap mb-1">
-            <h3 class="font-bold text-slate-900 text-sm truncate">Bot 实时推送</h3>
-            <span class="chip-blue">秒级推送</span>
-            <span class="chip-teal">私聊/群组</span>
-          </div>
-          <div class="text-[11.5px] text-slate-500 truncate">
-            抓到客户自动通知手机
-          </div>
-        </div>
-        <div>
-          <button onclick="openModal('modal-bot')" class="btn-action-green">
-            配置 Bot
-          </button>
-        </div>
-      </div>
+      </section>
 
-      <!-- 5. Spintax 批量群发 -->
-      <div class="mini-func-card" data-category="marketing" data-keywords="群发 批量 营销 spintax 广告 广播">
-        <div class="dark-avatar-circle">
-          <svg class="w-5 h-5 text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.85)]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-          </svg>
+      <!-- 5. 系统设置 -->
+      <section class="module-card" data-category="settings" data-keywords="设置 api hash key 配置 网络 代理">
+        <div class="module-heading"><strong>系统设置</strong><span>API · 密钥 · 部署</span></div>
+        <div class="module-items">
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">系统与 API 配置</h3><span class="chip-blue">API: 30958113</span><span class="chip-teal">就绪</span></div><div class="text-[11.5px] text-slate-500 truncate">密钥管理 · 端口 · Railway</div></div><button onclick="openModal('modal-settings')" class="btn-action-green">配置参数</button></div>
         </div>
-        <div class="flex-1 min-w-0 pl-0.5">
-          <div class="flex items-center gap-1.5 flex-wrap mb-1">
-            <h3 class="font-bold text-slate-900 text-sm truncate">Spintax 批量群发</h3>
-            <span class="chip-blue">变体防封</span>
-            <span class="chip-teal">多号轮换</span>
-          </div>
-          <div class="text-[11.5px] text-slate-500 truncate">
-            随机延时 · 定时推流
-          </div>
-        </div>
-        <div>
-          <button onclick="openModal('modal-sender')" class="btn-action-green">
-            发起群发
-          </button>
-        </div>
-      </div>
-
-      <!-- 6. 精准私信截流 -->
-      <div class="mini-func-card" data-category="dm" data-keywords="私信 私聊 截流 触达 客户 谈单">
-        <div class="dark-avatar-circle">
-          <svg class="w-5 h-5 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.85)]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
-          </svg>
-        </div>
-        <div class="flex-1 min-w-0 pl-0.5">
-          <div class="flex items-center gap-1.5 flex-wrap mb-1">
-            <h3 class="font-bold text-slate-900 text-sm truncate">精准私信截流</h3>
-            <span class="chip-orange">商机联动</span>
-            <span class="chip-blue">自动打招呼</span>
-          </div>
-          <div class="text-[11.5px] text-slate-500 truncate">
-            抓到意向客户即刻私信触达
-          </div>
-        </div>
-        <div>
-          <button onclick="openModal('modal-dm')" class="btn-action-green">
-            配置私信
-          </button>
-        </div>
-      </div>
-
-      <!-- 7. 受众采集与加群 -->
-      <div class="mini-func-card" data-category="groups" data-keywords="采集 加群 成员 爬虫 进群 拉群">
-        <div class="dark-avatar-circle">
-          <svg class="w-5 h-5 text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.85)]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-          </svg>
-        </div>
-        <div class="flex-1 min-w-0 pl-0.5">
-          <div class="flex items-center gap-1.5 flex-wrap mb-1">
-            <h3 class="font-bold text-slate-900 text-sm truncate">受众采集与加群</h3>
-            <span class="chip-blue">精准提取</span>
-            <span class="chip-teal">自动进群</span>
-          </div>
-          <div class="text-[11.5px] text-slate-500 truncate">
-            提取同行群活跃精准客户
-          </div>
-        </div>
-        <div>
-          <button onclick="openModal('modal-scraper')" class="btn-action-green">
-            采集/加群
-          </button>
-        </div>
-      </div>
-
-      <!-- 8. 商机线索数据库 (SQLite) -->
-      <div class="mini-func-card" data-category="leads" data-keywords="数据库 线索 归档 sqlite 记录 导出 excel">
-        <div class="dark-avatar-circle">
-          <svg class="w-5 h-5 text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.85)]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zm-8-2h6v-2h-6v2zm0-3h6V9h-6v2zm0-3h6V6h-6v2z"/>
-          </svg>
-        </div>
-        <div class="flex-1 min-w-0 pl-0.5">
-          <div class="flex items-center gap-1.5 flex-wrap mb-1">
-            <h3 class="font-bold text-slate-900 text-sm truncate">商机线索数据库</h3>
-            <span class="chip-purple">永久归档</span>
-            <span class="chip-teal">SQLite持久化</span>
-          </div>
-          <div class="text-[11.5px] text-slate-500 truncate">
-            历史追溯 · 一键导出
-          </div>
-        </div>
-        <div>
-          <button onclick="openModal('modal-leads')" class="btn-action-green">
-            查看线索
-          </button>
-        </div>
-      </div>
-
-      <!-- 9. 频道克隆与内容搬运 -->
-      <div class="mini-func-card" data-category="marketing" data-keywords="克隆 频道 搬运 替换 文本 媒体">
-        <div class="dark-avatar-circle">
-          <svg class="w-5 h-5 text-teal-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.85)]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-          </svg>
-        </div>
-        <div class="flex-1 min-w-0 pl-0.5">
-          <div class="flex items-center gap-1.5 flex-wrap mb-1">
-            <h3 class="font-bold text-slate-900 text-sm truncate">频道一键克隆</h3>
-            <span class="chip-blue">自动去水印</span>
-            <span class="chip-teal">规则替换</span>
-          </div>
-          <div class="text-[11.5px] text-slate-500 truncate">
-            复刻同行频道图文内容
-          </div>
-        </div>
-        <div>
-          <button onclick="openModal('modal-cloner')" class="btn-action-green">
-            开始克隆
-          </button>
-        </div>
-      </div>
-
-      <!-- 10. 系统 API 与环境配置 -->
-      <div class="mini-func-card" data-category="settings" data-keywords="设置 api hash key 配置 网络 代理">
-        <div class="dark-avatar-circle">
-          <svg class="w-5 h-5 text-amber-300 drop-shadow-[0_0_8px_rgba(252,211,77,0.85)]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-          </svg>
-        </div>
-        <div class="flex-1 min-w-0 pl-0.5">
-          <div class="flex items-center gap-1.5 flex-wrap mb-1">
-            <h3 class="font-bold text-slate-900 text-sm truncate">系统与 API 配置</h3>
-            <span class="chip-blue">API: 30958113</span>
-            <span class="chip-teal">就绪</span>
-          </div>
-          <div class="text-[11.5px] text-slate-500 truncate">
-            密钥管理 · 端口 · Railway
-          </div>
-        </div>
-        <div>
-          <button onclick="openModal('modal-settings')" class="btn-action-green">
-            配置参数
-          </button>
-        </div>
-      </div>
-
-    </div>
+      </section>    </div>
 
   </main>
+
+  <!-- 父模块子功能弹层：默认不展示，点击顶部父模块后打开 -->
+  <div id="modulePopover" class="module-popover hidden" role="dialog" aria-modal="true" aria-labelledby="modulePopoverTitle">
+    <div class="module-popover-panel">
+      <div class="module-popover-header">
+        <h3 id="modulePopoverTitle"></h3>
+        <button type="button" class="module-popover-close" onclick="closeModulePopover()" aria-label="关闭">×</button>
+      </div>
+      <div id="modulePopoverBody" class="module-popover-body"></div>
+    </div>
+  </div>
 
   <!-- 底部版权 -->
   <footer class="text-center text-xs text-white/70 mt-14 pb-8">
@@ -608,6 +554,41 @@
   <!-- ==================================================================== -->
   <!-- 模态弹窗系统 (Modals) -->
   <!-- ==================================================================== -->
+
+  <!-- 管理员登录 -->
+  <div id="modal-auth" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-[80]">
+    <div class="modal-content-box w-full max-w-sm p-6">
+      <h3 class="text-xl font-black text-slate-900">雲頂天宮</h3>
+      <p class="text-xs text-slate-500 mt-1">登录后管理 Telegram 账号与监听任务</p>
+      <div class="mt-5 space-y-3">
+        <input id="authUsername" value="admin" placeholder="管理员用户名" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+        <input id="authPassword" type="password" placeholder="管理员密码或 API Key" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm" onkeydown="if(event.key==='Enter') submitAdminLogin()">
+        <p id="authError" class="text-xs text-rose-600 hidden"></p>
+        <button onclick="submitAdminLogin()" class="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl">登录</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手机号登录流程 -->
+  <div id="modal-phone-login" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-[70]">
+    <div class="modal-content-box w-full max-w-md p-5 sm:p-6">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div><h3 class="text-base font-bold text-slate-800">手机号登录 Telegram</h3><p id="phoneLoginState" class="text-[11px] text-slate-500 mt-0.5">输入国际区号和手机号</p></div>
+        <button onclick="closeModal('modal-phone-login')" class="text-slate-400 text-lg font-bold">✕</button>
+      </div>
+      <div class="mt-4 space-y-3 text-xs">
+        <input id="loginPhone" placeholder="例如 +8613800000000" class="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono">
+        <input id="loginRemark" placeholder="账号备注（可选）" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+        <div id="loginCodeBlock" class="hidden"><input id="loginCode" placeholder="Telegram 验证码" class="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono"></div>
+        <div id="loginPasswordBlock" class="hidden"><input id="loginPassword" type="password" placeholder="二步验证密码" class="w-full px-3 py-2 border border-slate-200 rounded-lg"></div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button id="loginStartBtn" onclick="startPhoneLogin()" class="btn-action-sm">发送验证码</button>
+          <button id="loginCodeBtn" onclick="submitPhoneCode()" class="btn-action-sm hidden">提交验证码</button>
+          <button id="loginPasswordBtn" onclick="submitPhonePassword()" class="btn-action-sm hidden">提交密码</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- 1. 批量导入弹窗 (支持文件拖拽/多选上传 + 本地路径扫描) -->
   <div id="modal-batch-import" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
@@ -663,7 +644,7 @@
 
   <!-- 2. 账号资产列表弹窗 -->
   <div id="modal-accounts" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
-    <div class="modal-content-box w-full max-w-4xl p-5 sm:p-6 overflow-y-auto">
+    <div class="modal-content-box w-full max-w-5xl mx-3 sm:mx-5 p-5 sm:p-6 overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100">
         <div class="flex items-center gap-2">
           <h3 class="text-base font-bold text-slate-800">👥 账号资产中枢</h3>
@@ -672,9 +653,12 @@
         <button onclick="closeModal('modal-accounts')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
       </div>
 
-      <div class="mt-3 flex justify-between items-center">
-        <button onclick="openModal('modal-batch-import')" class="btn-action-sm !py-1 !px-2.5">+ 导入更多</button>
-        <button onclick="loadAccounts()" class="text-xs text-teal-700 font-semibold hover:underline">🔄 刷新账号状态</button>
+      <div class="mt-3 flex justify-between items-center gap-2">
+        <div class="flex items-center gap-2">
+          <button onclick="openModal('modal-phone-login')" class="btn-action-sm !py-1 !px-2.5">+ 手机号登录</button>
+          <button onclick="openModal('modal-batch-import')" class="px-3 py-1.5 bg-slate-100 text-slate-700 font-semibold rounded-full text-xs">导入 Session</button>
+        </div>
+        <button onclick="loadAccounts()" class="text-xs text-teal-700 font-semibold hover:underline">↻ 刷新账号状态</button>
       </div>
 
       <div class="mt-3 overflow-x-auto border border-slate-200 rounded-lg max-h-96">
@@ -715,7 +699,12 @@
           <input type="text" id="monitorExcludeWords" value="已出, 骗子, 招聘, 广告, 勿扰" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
         </div>
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-          <button onclick="saveMonitorSettings()" class="btn-action-sm">💾 保存并应用</button>
+          <button onclick="saveMonitorSettings()" class="btn-action-sm">💾 新增规则</button>
+          <button onclick="loadRules()" class="px-3 py-1.5 bg-slate-100 rounded-lg text-xs">刷新列表</button>
+        </div>
+        <div class="border border-slate-200 rounded-lg overflow-auto max-h-56">
+          <table class="data-table"><thead><tr><th>规则</th><th>匹配</th><th>动作</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="rulesTableBody"><tr><td colspan="5" class="text-center py-4 text-slate-400">暂无规则</td></tr></tbody></table>
         </div>
       </div>
     </div>
@@ -739,7 +728,12 @@
           <input type="text" id="botChatIdInput" placeholder="例如: 987654321 或 @my_channel" class="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-xs">
         </div>
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-          <button onclick="saveBotConfig()" class="btn-action-sm">💾 保存配置</button>
+          <button onclick="saveBotConfig()" class="btn-action-sm">💾 新增目标</button>
+          <button onclick="loadBotTargets()" class="px-3 py-1.5 bg-slate-100 rounded-lg text-xs">刷新列表</button>
+        </div>
+        <div class="border border-slate-200 rounded-lg overflow-auto max-h-48">
+          <table class="data-table"><thead><tr><th>名称</th><th>Token</th><th>Chat ID</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="botTargetsTableBody"><tr><td colspan="5" class="text-center py-4 text-slate-400">暂无 Bot 目标</td></tr></tbody></table>
         </div>
       </div>
     </div>
@@ -845,6 +839,16 @@
     </div>
   </div>
 
+  <!-- 历史消息归档 -->
+  <div id="modal-archive" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="modal-content-box w-full max-w-6xl p-5 sm:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100"><div><h3 class="text-base font-bold text-slate-800">🗃 历史消息归档</h3><span id="archiveCountBadge" class="text-xs text-slate-500">0 条</span></div><button onclick="closeModal('modal-archive')" class="text-slate-400 text-lg font-bold">✕</button></div>
+      <div class="mt-3 flex gap-2"><input id="archiveKeyword" placeholder="关键词 / 群组 / 用户" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs"><button onclick="loadArchive(1)" class="btn-action-sm">查询</button></div>
+      <div class="mt-3 overflow-auto border border-slate-200 rounded-lg max-h-[55vh]"><table class="data-table"><thead><tr><th>时间</th><th>账号</th><th>群组</th><th>发送者</th><th>内容</th><th>命中</th></tr></thead><tbody id="archiveTableBody"></tbody></table></div>
+      <div class="mt-3 flex justify-between items-center text-xs text-slate-500"><button onclick="loadArchive(Math.max(1, archivePage - 1))" class="px-3 py-1 bg-slate-100 rounded">上一页</button><span id="archivePageText">第 1 页</span><button onclick="loadArchive(archivePage + 1)" class="px-3 py-1 bg-slate-100 rounded">下一页</button></div>
+    </div>
+  </div>
+
   <!-- 9. 频道克隆弹窗 -->
   <div id="modal-cloner" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
     <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
@@ -888,12 +892,21 @@
   <!-- JavaScript 核心交互 -->
   <!-- ==================================================================== -->
   <script>
+    const TG_BASE_PATH = window.location.pathname.startsWith('/catalog') ? '/catalog' : '';
+    function tgApiPath(input) {
+      const path = String(input);
+      return path.startsWith('/') ? `${TG_BASE_PATH}${path}` : path;
+    }
     async function apiFetch(input, init = {}, timeoutMs = 60000) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const res = await fetch(input, { ...init, signal: controller.signal });
+        const headers = new Headers(init.headers || {});
+        const apiKey = sessionStorage.getItem('tgApiKey');
+        if (apiKey && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${apiKey}`);
+        const res = await fetch(tgApiPath(input), { ...init, headers, credentials: 'same-origin', signal: controller.signal });
         clearTimeout(timeoutId);
+        if (res.status === 401 && input !== '/api/auth/login') openModal('modal-auth');
         return res;
       } catch (e) {
         clearTimeout(timeoutId);
@@ -910,6 +923,9 @@
       }
       if (id === 'modal-accounts') loadAccounts();
       if (id === 'modal-leads') loadLeads();
+      if (id === 'modal-monitor') loadRules();
+      if (id === 'modal-bot') loadBotTargets();
+      if (id === 'modal-archive') loadArchive();
     }
 
     function closeModal(id) {
@@ -925,42 +941,59 @@
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
 
-      const cards = document.querySelectorAll('#cardGrid .mini-func-card');
-      cards.forEach(card => {
-        if (cat === 'all' || card.getAttribute('data-category') === cat) {
-          card.style.display = 'flex';
-        } else {
-          card.style.display = 'none';
-        }
-      });
-
-      const sectionTitle = document.getElementById('sectionTitle');
-      const catNames = {
-        all: '核心功能中枢',
-        accounts: '矩阵号池与资产管理',
-        monitor: '商机关键词雷达',
-        marketing: '矩阵营销与群发',
-        dm: '精准私信截流',
-        groups: '受众采集与加群',
-        leads: '商机线索数据库',
-        settings: '系统与 API 配置'
-      };
-      if (sectionTitle) sectionTitle.textContent = catNames[cat] || '核心功能中枢';
+      openModulePopover(cat);
     }
+
+    const moduleTitles = {
+      accounts: '账号中心',
+      monitor: '商机雷达',
+      marketing: '营销触达',
+      data: '数据中心',
+      settings: '系统设置'
+    };
+
+    function openModulePopover(category) {
+      if (category === 'accounts') {
+        openModal('modal-accounts');
+        return;
+      }
+      const source = document.querySelector(`#cardGrid > .module-card[data-category="${category}"]`);
+      const popover = document.getElementById('modulePopover');
+      const body = document.getElementById('modulePopoverBody');
+      const title = document.getElementById('modulePopoverTitle');
+      if (!source || !popover || !body || !title) return;
+      title.textContent = moduleTitles[category] || '功能模块';
+      body.innerHTML = source.querySelector('.module-items')?.innerHTML || '';
+      popover.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function refreshAccountStatus() {
+      loadStats();
+      openModal('modal-accounts');
+      loadAccounts();
+    }
+
+    function closeModulePopover() {
+      const popover = document.getElementById('modulePopover');
+      if (popover) popover.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    document.getElementById('modulePopover')?.addEventListener('click', (event) => {
+      if (event.target.id === 'modulePopover') closeModulePopover();
+    });
 
     // 全局即时搜索
     function handleSearch(query) {
       const q = query.trim().toLowerCase();
-      const cards = document.querySelectorAll('#cardGrid .mini-func-card');
-      cards.forEach(card => {
-        const text = card.textContent.toLowerCase();
-        const kw = (card.getAttribute('data-keywords') || '').toLowerCase();
-        if (!q || text.includes(q) || kw.includes(q)) {
-          card.style.display = 'flex';
-        } else {
-          card.style.display = 'none';
-        }
+      if (!q) return;
+      const card = Array.from(document.querySelectorAll('#cardGrid > .module-card')).find(item => {
+        const text = item.textContent.toLowerCase();
+        const kw = (item.getAttribute('data-keywords') || '').toLowerCase();
+        return text.includes(q) || kw.includes(q);
       });
+      if (card) openModulePopover(card.getAttribute('data-category'));
     }
 
     // 文件拖拽与上传逻辑
@@ -1127,14 +1160,15 @@
         tbody.innerHTML = list.map((acc, idx) => `
           <tr>
             <td class="font-mono text-slate-500">${idx + 1}</td>
-            <td class="font-mono font-bold text-slate-900">${acc.phone || acc.name}</td>
+            <td><div class="font-mono font-bold text-slate-900">${acc.phone || acc.name}</div><div class="text-[10px] text-slate-400">${acc.display_name || acc.username || acc.remark || ''}</div></td>
             <td><span class="chip-blue">${acc.type || (acc.has_tdata ? 'TData' : 'Session')}</span></td>
             <td class="font-mono text-slate-500">DC ${acc.dc_id || 2}</td>
-            <td><span class="chip-teal"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1"></span>存活</span></td>
-            <td class="text-right space-x-1">
-              ${acc.has_tdata ? `<button onclick="launchDesktop('${acc.name}')" class="btn-action-sm !py-0.5 !px-2 bg-indigo-600 hover:bg-indigo-700">启动桌面</button>` : ''}
-              <button onclick="fetchCode('${acc.name}')" class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs hover:bg-slate-200">取验证码</button>
-              <button onclick="checkSpambot('${acc.name}')" class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs hover:bg-amber-100">查限制</button>
+            <td><span class="${acc.monitoring ? 'chip-teal' : (acc.authorized ? 'chip-blue' : 'chip-orange')}">${acc.monitoring ? '监听中' : (acc.authorized ? '已登录' : '待登录')}</span></td>
+            <td class="text-right space-x-1 whitespace-nowrap">
+              <button onclick="toggleMonitor('${acc.name}', ${acc.monitoring})" class="px-2 py-1 ${acc.monitoring ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'} rounded text-xs">${acc.monitoring ? '停止监听' : '启动监听'}</button>
+              <button onclick="reconnectAccount('${acc.name}')" class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">重连</button>
+              <button onclick="checkSpambot('${acc.name}')" class="px-2 py-1 bg-amber-50 text-amber-700 rounded text-xs">查限制</button>
+              <button onclick="deleteAccount('${acc.name}')" class="px-2 py-1 bg-rose-600 text-white rounded text-xs">删除</button>
             </td>
           </tr>
         `).join('');
@@ -1195,52 +1229,151 @@
       renderLeads(filtered);
     }
 
-    // 快捷账号操作
-    async function launchDesktop(name) {
-      try {
-        const res = await apiFetch('/api/accounts/launch-desktop', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({account_name: name})
-        });
-        const d = await res.json();
-        alert(d.message || '正在启动 Telegram 桌面版');
-      } catch (e) { alert('启动失败: ' + e.message); }
+    // 管理员与账号运行态
+    let activeLoginAccount = '';
+
+    async function submitAdminLogin() {
+      const username = document.getElementById('authUsername').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const error = document.getElementById('authError');
+      const response = await apiFetch('/api/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, password})});
+      if (!response.ok) { error.textContent = (await response.json()).detail || '登录失败'; error.classList.remove('hidden'); return; }
+      error.classList.add('hidden'); closeModal('modal-auth'); loadStats();
     }
 
-    async function fetchCode(name) {
-      try {
-        const res = await apiFetch('/api/accounts/get-code', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({account_name: name})
-        });
-        const d = await res.json();
-        if (d.code) prompt(`账号 ${name} 最新验证码:`, d.code);
-        else alert(`账号 ${name} 暂未收到新验证码`);
-      } catch (e) { alert('获取失败: ' + e.message); }
+    async function startPhoneLogin() {
+      const phone_number = document.getElementById('loginPhone').value.trim();
+      const remark = document.getElementById('loginRemark').value.trim();
+      const response = await apiFetch('/api/accounts/login/start', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({phone_number, remark})});
+      const data = await response.json();
+      if (!response.ok) return alert(data.detail || '发送验证码失败');
+      activeLoginAccount = data.account_name;
+      document.getElementById('phoneLoginState').textContent = data.message;
+      if (data.state === 'logged_in') return finishPhoneLogin();
+      document.getElementById('loginCodeBlock').classList.remove('hidden');
+      document.getElementById('loginStartBtn').classList.add('hidden');
+      document.getElementById('loginCodeBtn').classList.remove('hidden');
+    }
+
+    async function submitPhoneCode() {
+      const code = document.getElementById('loginCode').value.trim();
+      const response = await apiFetch('/api/accounts/login/code', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({account_name:activeLoginAccount, code})});
+      const data = await response.json();
+      if (!response.ok) return alert(data.detail || '验证码验证失败');
+      document.getElementById('phoneLoginState').textContent = data.message;
+      if (data.state === 'waiting_password') {
+        document.getElementById('loginCodeBtn').classList.add('hidden');
+        document.getElementById('loginPasswordBlock').classList.remove('hidden');
+        document.getElementById('loginPasswordBtn').classList.remove('hidden');
+      } else finishPhoneLogin();
+    }
+
+    async function submitPhonePassword() {
+      const password = document.getElementById('loginPassword').value;
+      const response = await apiFetch('/api/accounts/login/password', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({account_name:activeLoginAccount, password})});
+      const data = await response.json();
+      if (!response.ok) return alert(data.detail || '二步验证失败');
+      finishPhoneLogin();
+    }
+
+    function finishPhoneLogin() {
+      closeModal('modal-phone-login'); loadAccounts(); loadStats();
+      ['loginCodeBlock','loginPasswordBlock','loginCodeBtn','loginPasswordBtn'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      document.getElementById('loginStartBtn').classList.remove('hidden');
+    }
+
+    async function toggleMonitor(name, monitoring) {
+      const response = await apiFetch(`/api/accounts/${encodeURIComponent(name)}/monitor/${monitoring ? 'stop' : 'start'}`, {method:'POST'});
+      const data = await response.json();
+      if (!response.ok) return alert(data.detail || '操作失败');
+      loadAccounts(); loadStats();
+    }
+
+    async function reconnectAccount(name) {
+      const response = await apiFetch(`/api/accounts/${encodeURIComponent(name)}/reconnect`, {method:'POST'});
+      const data = await response.json(); alert(data.detail || (data.authorized ? '重连成功' : '账号未登录')); loadAccounts();
+    }
+
+    async function deleteAccount(name) {
+      if (!confirm(`确认删除账号 ${name}？Session 文件默认保留。`)) return;
+      const response = await apiFetch(`/api/accounts/${encodeURIComponent(name)}`, {method:'DELETE'});
+      if (!response.ok) return alert((await response.json()).detail || '删除失败');
+      loadAccounts(); loadStats();
     }
 
     async function checkSpambot(name) {
+      const form = new FormData(); form.append('account_name', name);
+      const response = await apiFetch('/api/accounts/check-spambot', {method:'POST', body:form});
+      const data = await response.json(); alert(data.detail || data.message || '查询完成');
+    }
+
+    let archivePage = 1;
+    async function loadRules() {
+      const response = await apiFetch('/api/monitor/rules');
+      if (!response.ok) return;
+      const rules = await response.json();
+      const body = document.getElementById('rulesTableBody');
+      body.innerHTML = rules.length ? rules.map(rule => `<tr><td><b>${rule.rule_name}</b><div class="text-[10px] text-slate-400">${rule.keyword_value}</div></td><td>${rule.match_mode}</td><td>${rule.action}</td><td>${rule.enabled ? '启用' : '停用'}</td><td><button class="text-rose-600" onclick="deleteRule(${rule.id})">删除</button></td></tr>`).join('') : '<tr><td colspan="5" class="text-center py-4 text-slate-400">暂无规则</td></tr>';
+    }
+    async function deleteRule(id) {
+      if (!confirm('确认删除这条规则？')) return;
+      const response = await apiFetch(`/api/monitor/rules/${id}`, {method:'DELETE'});
+      if (!response.ok) return alert('删除失败');
+      loadRules();
+    }
+    async function loadBotTargets() {
+      const response = await apiFetch('/api/monitor/bot-targets');
+      if (!response.ok) return;
+      const targets = await response.json();
+      document.getElementById('botTargetsTableBody').innerHTML = targets.length ? targets.map(target => `<tr><td>${target.name}</td><td class="font-mono">${target.bot_token}</td><td class="font-mono">${target.chat_id}</td><td>${target.enabled ? '启用' : '停用'}</td><td><button class="text-rose-600" onclick="deleteBotTarget(${target.id})">删除</button></td></tr>`).join('') : '<tr><td colspan="5" class="text-center py-4 text-slate-400">暂无 Bot 目标</td></tr>';
+    }
+    async function deleteBotTarget(id) {
+      if (!confirm('确认删除该 Bot 通知目标？')) return;
+      const response = await apiFetch(`/api/monitor/bot-targets/${id}`, {method:'DELETE'});
+      if (!response.ok) return alert('删除失败');
+      loadBotTargets();
+    }
+    async function loadArchive(page = 1) {
+      archivePage = Math.max(1, page);
+      const keyword = encodeURIComponent(document.getElementById('archiveKeyword')?.value.trim() || '');
+      const response = await apiFetch(`/api/monitor/messages?page=${archivePage}&page_size=30&keyword=${keyword}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      document.getElementById('archiveCountBadge').textContent = `${data.total} 条`;
+      document.getElementById('archivePageText').textContent = `第 ${data.page} 页 / 共 ${Math.max(1, Math.ceil(data.total / data.page_size))} 页`;
+      document.getElementById('archiveTableBody').innerHTML = data.items.length ? data.items.map(item => `<tr><td class="whitespace-nowrap text-[10px]">${item.message_date || item.created_at || ''}</td><td>${item.account_name || ''}</td><td>${item.chat_title || item.chat_id || ''}</td><td>${item.sender_name || item.sender_username || ''}</td><td class="max-w-md">${item.text || ''}</td><td>${item.matched_keyword ? `<span class="chip-orange">${item.matched_keyword}</span>` : '-'}</td></tr>`).join('') : '<tr><td colspan="6" class="text-center py-8 text-slate-400">暂无归档消息</td></tr>';
+    }
+
+    async function saveMonitorSettings() {
+      const keywords = document.getElementById('monitorKeywords').value.split(/[,，]/).map(v => v.trim()).filter(Boolean);
+      const excludeWords = document.getElementById('monitorExcludeWords').value.trim();
+      if (!keywords.length) return alert('请输入至少一个监控关键词');
       try {
-        const res = await apiFetch('/api/accounts/check-spambot', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({account_name: name})
+        for (const keyword of keywords) {
+          const response = await apiFetch('/api/monitor/rules', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({rule_name: '网页监控规则', keyword_value: keyword, match_mode: 'contains', exclude_words: excludeWords, action: 'monitor', enabled: true})
+          });
+          if (!response.ok) throw new Error((await response.json()).detail || '规则保存失败');
+        }
+        alert(`✅ 已保存 ${keywords.length} 条关键词规则`);
+        closeModal('modal-monitor');
+      } catch (error) { alert('保存失败: ' + error.message); }
+    }
+
+    async function saveBotConfig() {
+      const botToken = document.getElementById('botTokenInput').value.trim();
+      const chatId = document.getElementById('botChatIdInput').value.trim();
+      if (!botToken || !chatId) return alert('请输入 Bot Token 和 Chat ID');
+      try {
+        const response = await apiFetch('/api/monitor/bot-targets', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name: '网页配置 Bot', bot_token: botToken, chat_id: chatId, enabled: true})
         });
-        const d = await res.json();
-        alert(`账号 ${name} 状态: ` + (d.response || '正常'));
-      } catch (e) { alert('检测失败: ' + e.message); }
-    }
-
-    function saveMonitorSettings() {
-      alert('✅ 关键词雷达规则已成功生效！');
-      closeModal('modal-monitor');
-    }
-
-    function saveBotConfig() {
-      alert('✅ Telegram Bot 通知配置已保存！');
-      closeModal('modal-bot');
+        if (!response.ok) throw new Error((await response.json()).detail || 'Bot 配置保存失败');
+        alert('✅ Telegram Bot 通知配置已保存');
+        closeModal('modal-bot');
+      } catch (error) { alert('保存失败: ' + error.message); }
     }
 
     function startSender() {
@@ -1263,8 +1396,9 @@
       closeModal('modal-cloner');
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      loadStats();
+    window.addEventListener('DOMContentLoaded', async () => {
+      const response = await apiFetch('/api/auth/me');
+      if (response.ok) loadStats();
     });
   </script>
 </body>
