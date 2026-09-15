@@ -555,6 +555,7 @@
       <button onclick="filterCategory('marketing', this)" class="cat-btn active">营销触达</button>
       <button onclick="filterCategory('monitor', this)" class="cat-btn">商机雷达</button>
       <button onclick="filterCategory('data', this)" class="cat-btn">数据中心</button>
+      <button onclick="filterCategory('ai', this)" class="cat-btn">AI-重选</button>
       <button onclick="filterCategory('settings', this)" class="cat-btn">系统设置</button>
     </div>
   </div>
@@ -594,6 +595,16 @@
           <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><h3 class="font-bold text-slate-900 text-sm">频道克隆</h3><div class="text-[11.5px] text-slate-500">复制频道内容 · 支持内容替换</div></div><button onclick="openModal('modal-cloner')" class="btn-action-green">开始克隆</button></div>
         </div>
       </section>
+      <!-- AI-重选：AI 自动化工作台 -->
+      <section class="module-card" data-category="ai" data-keywords="AI GPT 文案 自动发帖 自动回复 AI评论 任务策略">
+        <div class="module-heading"><strong>AI-重选</strong><span>生成 · 自动化 · 策略</span></div>
+        <div class="module-items">
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><h3 class="font-bold text-slate-900 text-sm">AI 文案生成</h3><div class="text-[11.5px] text-slate-500">GPT 文案 · Spintax 变体 · 预览</div></div><button onclick="openModal('modal-ai-workbench')" class="btn-action-green">打开工作台</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><h3 class="font-bold text-slate-900 text-sm">GPT 自动发帖</h3><div class="text-[11.5px] text-slate-500">V1/V2 场景 · 多账号任务</div></div><button onclick="openModal('modal-ai-workbench')" class="btn-action-green">配置策略</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><h3 class="font-bold text-slate-900 text-sm">AI 自动回复</h3><div class="text-[11.5px] text-slate-500">上下文回复 · 人工确认</div></div><button onclick="openModal('modal-ai-workbench')" class="btn-action-green">配置策略</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><h3 class="font-bold text-slate-900 text-sm">AI 评论</h3><div class="text-[11.5px] text-slate-500">按帖子内容生成评论</div></div><button onclick="openModal('modal-ai-workbench')" class="btn-action-green">配置策略</button></div>
+        </div>
+      </section>
       <!-- 2. 商机雷达：关键词监听与 Bot 通知 -->
       <section class="module-card" data-category="monitor" data-keywords="商机 关键词 监听 截流 需求 监控 bot 通知 告警">
         <div class="module-heading"><strong>商机雷达</strong><span>监听 · 告警 · 截流</span></div>
@@ -617,7 +628,6 @@
       <section class="module-card" data-category="settings" data-keywords="设置 api hash key 配置 网络 代理">
         <div class="module-heading"><strong>系统设置</strong><span>API · 密钥 · 部署</span></div>
         <div class="module-items">
-          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">AI-重选</h3><span class="chip-purple">账号策略</span></div><div class="text-[11.5px] text-slate-500 truncate">账号轮换与智能触达策略入口</div></div><button onclick="openModal('modal-settings')" class="btn-action-green">打开设置</button></div>
           <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">系统与 API 配置</h3><span class="chip-blue">API: 30958113</span><span class="chip-teal">就绪</span></div><div class="text-[11.5px] text-slate-500 truncate">密钥管理 · 端口 · Railway</div></div><button onclick="openModal('modal-settings')" class="btn-action-green">配置参数</button></div>
         </div>
       </section>    </div>
@@ -828,6 +838,7 @@
     </div>
   </div>
 
+  <div id="modal-ai-workbench" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50"><div class="modal-content-box w-full max-w-2xl p-5 sm:p-6 overflow-y-auto"><div class="flex justify-between items-center pb-3 border-b border-slate-100"><div><h3 class="text-base font-bold text-slate-800">✨ AI-重选工作台</h3><p class="text-[11px] text-slate-500 mt-1">AI 文案、自动发帖、自动回复与评论策略</p></div><button onclick="closeModal('modal-ai-workbench')" class="text-slate-400 text-lg font-bold">✕</button></div><div class="mt-4 grid gap-3 sm:grid-cols-2"><div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><strong class="text-sm text-slate-800">AI 文案生成</strong><p class="mt-1 text-xs text-slate-500">准备原始文案和上下文，生成多个可审核版本。</p><span class="mt-2 inline-block chip-orange">待接入模型</span></div><div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><strong class="text-sm text-slate-800">GPT 自动发帖</strong><p class="mt-1 text-xs text-slate-500">选择账号、目标聊天和发布计划，先预览再执行。</p><span class="mt-2 inline-block chip-orange">待接入模型</span></div><div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><strong class="text-sm text-slate-800">AI 自动回复</strong><p class="mt-1 text-xs text-slate-500">基于对话上下文生成回复，支持人工确认。</p><span class="mt-2 inline-block chip-orange">待接入模型</span></div><div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><strong class="text-sm text-slate-800">AI 评论</strong><p class="mt-1 text-xs text-slate-500">根据帖子内容生成评论草稿，避免固定模板。</p><span class="mt-2 inline-block chip-orange">待接入模型</span></div></div><div class="mt-4 rounded-xl border border-teal-100 bg-teal-50 p-3 text-xs text-teal-800">当前 AI-重选已完成工作台入口和策略分组；接入模型后再启用真实生成与自动执行。</div></div></div>
   <div id="modal-scraper" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50"><div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto"><div class="flex justify-between items-center pb-3 border-b border-slate-100"><h3 class="text-base font-bold text-slate-800">🔍 群成员采集</h3><button onclick="closeModal('modal-scraper')" class="text-slate-400 text-lg font-bold">✕</button></div><div class="mt-4 space-y-3 text-xs"><input id="scrapeAccountName" placeholder="工作账号名称" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><input id="scrapeGroupLink" placeholder="目标群组/频道链接" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><select id="scrapeMode" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><option value="members">群成员</option><option value="active_chatters">活跃发言者</option><option value="commenters">频道评论者</option></select><div class="flex gap-2"><input id="scrapeLimit" type="number" value="1000" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg"><input id="scrapeDays" type="number" value="7" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg"></div><div class="flex justify-end"><button onclick="startScrape()" class="btn-action-sm">开始采集</button></div></div></div></div>
   <div id="modal-audience-filter" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50"><div class="modal-content-box w-full max-w-4xl p-5 sm:p-6 overflow-y-auto"><div class="flex justify-between items-center pb-3 border-b border-slate-100"><h3 class="text-base font-bold text-slate-800">📊 受众数据筛选</h3><button onclick="closeModal('modal-audience-filter')" class="text-slate-400 text-lg font-bold">✕</button></div><div class="mt-4 space-y-3 text-xs"><div class="flex gap-2"><input id="audienceTag" placeholder="标签，例如 member" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg"><label class="flex items-center gap-1"><input id="audienceActive" type="checkbox">仅活跃</label><button onclick="loadAudienceUsers()" class="btn-action-sm">筛选</button><a href="/api/scraper/export-csv" class="btn-action-sm" download>导出 CSV</a></div><div class="overflow-x-auto border border-slate-200 rounded-lg max-h-96"><table class="data-table"><thead><tr><th>用户</th><th>用户名</th><th>来源群组</th><th>标签</th><th>消息数</th></tr></thead><tbody id="audienceTableBody"></tbody></table></div></div></div></div>
   <div id="modal-sender" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50"><div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto"><div class="flex justify-between items-center pb-3 border-b border-slate-100"><h3 class="text-base font-bold text-slate-800">✉️ 批量群发</h3><button onclick="closeModal('modal-sender')" class="text-slate-400 text-lg font-bold">✕</button></div><div class="mt-4 space-y-3 text-xs"><input id="senderTag" placeholder="受众标签（可选）" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><textarea id="senderText" rows="4" class="w-full p-2.5 border border-slate-200 rounded-lg" placeholder="消息模板，支持 {你好|您好} 变体"></textarea><div class="flex justify-end"><button onclick="startSender()" class="btn-action-sm">发起群发</button></div></div></div></div>
@@ -979,6 +990,7 @@
       marketing: '营销触达',
       monitor: '商机雷达',
       data: '数据中心',
+      ai: 'AI-重选',
       settings: '系统设置'
     };
 
