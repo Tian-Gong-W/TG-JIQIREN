@@ -203,7 +203,7 @@ async def get_ai_config(_: str = Depends(require_auth)):
     """只返回 AI 配置元数据，绝不返回 API Key。"""
     provider = _ai_setting("TG_AI_PROVIDER", "OpenAI-compatible")
     return {
-        "configured": bool(os.getenv("TG_AI_API_KEY", "").strip()),
+        "configured": bool(_ai_setting("TG_AI_API_KEY") or _ai_setting("MISTRAL_API_KEY")),
         "base_url": _ai_setting("TG_AI_BASE_URL", "https://api.openai.com/v1").rstrip("/"),
         "model": _ai_setting("TG_AI_MODEL", "gpt-4o-mini"),
         "provider": provider,
