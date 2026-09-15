@@ -1122,6 +1122,10 @@ async def delete_monitor_bot_target(target_id: int, _: str = Depends(require_adm
 async def yun_ding_background():
     return FileResponse(os.path.join(BASE_DIR, "static", "assets", "yun-ding.jpg"), media_type="image/jpeg")
 
+@app.get("/demo", include_in_schema=False)
+async def public_demo_page():
+    return FileResponse(os.path.join(BASE_DIR, "static", "demo.html"), media_type="text/html")
+
 # 挂载静态网页
 app.mount("/", StaticFiles(directory=os.path.join(BASE_DIR, "static"), html=True), name="static")
 

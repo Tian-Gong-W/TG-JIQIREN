@@ -649,7 +649,7 @@
       <h3 class="text-xl font-black text-slate-900">雲頂天宮</h3>
       <p class="text-xs text-slate-500 mt-1">登录后管理 Telegram 账号与监听任务</p>
       <div class="mt-5 space-y-3">
-        <input id="authUsername" value="admin" placeholder="管理员用户名" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
+        <input id="authUsername" value="云顶天宫" placeholder="管理员用户名" autocomplete="username" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm">
         <input id="authPassword" type="password" placeholder="管理员密码或 API Key" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm" onkeydown="if(event.key==='Enter') submitAdminLogin()">
         <p id="authError" class="text-xs text-rose-600 hidden"></p>
         <button onclick="submitAdminLogin()" class="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl">登录</button>
@@ -994,7 +994,13 @@
         if (apiKey && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${apiKey}`);
         const res = await fetch(tgApiPath(input), { ...init, headers, credentials: 'same-origin', signal: controller.signal });
         clearTimeout(timeoutId);
-        if (res.status === 401 && input !== '/api/auth/login') openModal('modal-auth');
+        if (res.status === 401 && input !== '/api/auth/login') {
+          document.querySelectorAll('.modal-backdrop:not(#modal-auth)').forEach(modal => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+          });
+          openModal('modal-auth');
+        }
         return res;
       } catch (e) {
         clearTimeout(timeoutId);
