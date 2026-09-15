@@ -35,22 +35,31 @@
     * { box-sizing: border-box; }
     body {
       font-family: "Noto Sans SC", "Outfit", system-ui, -apple-system, sans-serif;
+      background: transparent;
+      min-height: 100vh;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+      position: relative;
+      isolation: isolate;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
       background-color: #081c35;
       background-image: linear-gradient(rgba(0, 29, 54, 0.34), rgba(0, 76, 96, 0.42)), url('/assets/yun-ding.jpg?v=956ec5f');
       background-size: cover;
       background-position: center center;
       background-repeat: no-repeat;
-      background-attachment: fixed;
-      min-height: 100vh;
-      color: #1e293b;
-      margin: 0;
-      padding: 0;
     }
 
     @media (max-width: 640px) {
-      body {
-        background-position: 58% center;
-        background-attachment: scroll;
+      body::before {
+        background-position: 62% center;
+        background-size: cover;
       }
     }
 
