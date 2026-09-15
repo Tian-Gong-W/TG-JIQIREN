@@ -540,7 +540,6 @@
     <div class="category-capsule-bar flex items-center flex-wrap justify-center gap-1">
       <button onclick="filterCategory('accounts', this)" class="cat-btn active">账号中心</button>
       <button onclick="filterCategory('monitor', this)" class="cat-btn">商机雷达</button>
-      <button onclick="filterCategory('marketing', this)" class="cat-btn">营销触达</button>
       <button onclick="filterCategory('data', this)" class="cat-btn">数据中心</button>
       <button onclick="filterCategory('settings', this)" class="cat-btn">系统设置</button>
     </div>
@@ -582,21 +581,11 @@
         </div>
       </section>
 
-      <!-- 3. 营销触达：群发、私信与频道克隆 -->
-      <section class="module-card" data-category="marketing" data-keywords="群发 批量 营销 spintax 私信 私聊 截流 克隆 频道 搬运 替换">
-        <div class="module-heading"><strong>营销触达</strong><span>群发 · 私信 · 克隆</span></div>
-        <div class="module-items">
-          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">Spintax 批量群发</h3><span class="chip-blue">变体</span><span class="chip-teal">多号轮换</span></div><div class="text-[11.5px] text-slate-500 truncate">随机延时 · 定时推流</div></div><button onclick="openModal('modal-sender')" class="btn-action-green">发起群发</button></div>
-          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">精准私信触达</h3><span class="chip-orange">商机联动</span><span class="chip-blue">自动打招呼</span></div><div class="text-[11.5px] text-slate-500 truncate">抓到意向客户即刻私信</div></div><button onclick="openModal('modal-dm')" class="btn-action-green">配置私信</button></div>
-          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">频道内容克隆</h3><span class="chip-blue">去水印</span><span class="chip-teal">规则替换</span></div><div class="text-[11.5px] text-slate-500 truncate">复刻同行频道图文内容</div></div><button onclick="openModal('modal-cloner')" class="btn-action-green">开始克隆</button></div>
-        </div>
-      </section>
 
-      <!-- 4. 数据中心：受众采集与线索数据库 -->
-      <section class="module-card" data-category="data" data-keywords="采集 加群 成员 爬虫 进群 拉群 数据库 线索 归档 sqlite 导出">
+      <!-- 3. 数据中心：受众采集与线索数据库 -->
+      <section class="module-card" data-category="data" data-keywords="数据库 线索 归档 sqlite 导出">
         <div class="module-heading"><strong>数据中心</strong><span>采集 · 沉淀 · 导出</span></div>
         <div class="module-items">
-          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">受众采集与加群</h3><span class="chip-blue">精准提取</span><span class="chip-teal">自动进群</span></div><div class="text-[11.5px] text-slate-500 truncate">提取同行群活跃精准客户</div></div><button onclick="openModal('modal-scraper')" class="btn-action-green">采集/加群</button></div>
           <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">商机线索数据库</h3><span class="chip-purple">永久归档</span><span class="chip-teal">SQLite</span></div><div class="text-[11.5px] text-slate-500 truncate">历史追溯 · 一键导出</div></div><button onclick="openModal('modal-archive')" class="btn-action-green">查看归档</button></div>
           <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">商机线索总览</h3><span class="chip-orange">实时统计</span><span class="chip-blue">0 条</span></div><div class="text-[11.5px] text-slate-500 truncate">当前捕获线索 · 快速检索与跟进</div></div><button onclick="openModal('modal-leads')" class="btn-action-green">查看线索</button></div>
         </div>
@@ -816,72 +805,7 @@
     </div>
   </div>
 
-  <!-- 5. Spintax 批量群发弹窗 -->
-  <div id="modal-sender" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
-    <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-        <h3 class="text-base font-bold text-slate-800">✉️ Spintax 批量群发</h3>
-        <button onclick="closeModal('modal-sender')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-      </div>
-      <div class="mt-4 space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">目标群组链接（每行一个）：</label>
-          <textarea id="senderTargets" rows="2" placeholder="https://t.me/group1&#10;https://t.me/group2" class="w-full p-2.5 border border-slate-200 rounded-lg font-mono text-xs"></textarea>
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">消息内容 ({你好|您好} 语法)：</label>
-          <textarea id="senderText" rows="3" class="w-full p-2.5 border border-slate-200 rounded-lg text-xs">{你好|您好}！专注 Telegram 矩阵营销与商机拦截服务！</textarea>
-        </div>
-        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-          <button onclick="startSender()" class="btn-action-sm">🚀 发起群发</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 6. 精准私信截流弹窗 -->
-  <div id="modal-dm" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
-    <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-        <h3 class="text-base font-bold text-slate-800">💬 精准私信主动触达</h3>
-        <button onclick="closeModal('modal-dm')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-      </div>
-      <div class="mt-4 space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">目标用户 @username / ID（每行一个）：</label>
-          <textarea id="dmTargets" rows="2" placeholder="@user1&#10;@user2" class="w-full p-2.5 border border-slate-200 rounded-lg font-mono text-xs"></textarea>
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">私信话术：</label>
-          <textarea id="dmMessage" rows="3" class="w-full p-2.5 border border-slate-200 rounded-lg text-xs">您好，看到您在群里找相关业务，我们提供一站式专业解决方案！</textarea>
-        </div>
-        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-          <button onclick="startDM()" class="btn-action-sm">⚡ 发送私信</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 7. 受众采集与加群弹窗 -->
-  <div id="modal-scraper" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
-    <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-        <h3 class="text-base font-bold text-slate-800">🔍 受众精准采集与自动加群</h3>
-        <button onclick="closeModal('modal-scraper')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-      </div>
-      <div class="mt-4 space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">目标群公开链接：</label>
-          <input type="text" id="scrapeGroupLink" placeholder="https://t.me/target_group" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
-        </div>
-        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-          <button onclick="startScrape()" class="btn-action-sm">🔍 开始采集</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 8. 商机线索数据库 (SQLite) 弹窗 -->
+  <!-- 5. 商机线索数据库 (SQLite) 弹窗 -->
   <div id="modal-leads" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
     <div class="modal-content-box w-full max-w-4xl p-5 sm:p-6 overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -926,30 +850,7 @@
     </div>
   </div>
 
-  <!-- 9. 频道克隆弹窗 -->
-  <div id="modal-cloner" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
-    <div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-        <h3 class="text-base font-bold text-slate-800">⚡ 频道一键克隆</h3>
-        <button onclick="closeModal('modal-cloner')" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-      </div>
-      <div class="mt-4 space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">源频道链接：</label>
-          <input type="text" id="cloneSource" placeholder="https://t.me/source_channel" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">目标频道链接：</label>
-          <input type="text" id="cloneTarget" placeholder="https://t.me/my_channel" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
-        </div>
-        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-          <button onclick="startClone()" class="btn-action-sm">⚡ 开始克隆</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 10. 系统与 API 配置弹窗 -->
+  <!-- 9. 系统与 API 配置弹窗 -->
   <div id="modal-settings" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
     <div class="modal-content-box w-full max-w-lg p-5 sm:p-6 overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -958,7 +859,7 @@
       </div>
       <div class="mt-4 space-y-2 text-xs font-mono bg-slate-50 p-3.5 rounded-lg border border-slate-200">
         <div>TG_API_ID: <strong class="text-slate-800">30958113</strong> (已内置注入)</div>
-        <div>TG_ENV: <strong class="text-teal-700">development</strong></div>
+        <div>TG_ENV: <strong class="text-teal-700">production</strong></div>
         <div>SQLite 数据库: <strong class="text-slate-800">tg_data.db</strong></div>
         <div>云端部署: <strong class="text-teal-700">Railway Ready</strong></div>
       </div>
@@ -1049,7 +950,6 @@
     const moduleTitles = {
       accounts: '账号中心',
       monitor: '商机雷达',
-      marketing: '营销触达',
       data: '数据中心',
       settings: '系统设置'
     };
@@ -1479,25 +1379,6 @@
       } catch (error) { alert('保存失败: ' + error.message); }
     }
 
-    function startSender() {
-      alert('🚀 批量群发已启动！');
-      closeModal('modal-sender');
-    }
-
-    function startDM() {
-      alert('⚡ 私信触达任务已启动！');
-      closeModal('modal-dm');
-    }
-
-    function startScrape() {
-      alert('🔍 正在开始采集公开群成员...');
-      closeModal('modal-scraper');
-    }
-
-    function startClone() {
-      alert('⚡ 频道克隆任务已启动！');
-      closeModal('modal-cloner');
-    }
 
     window.addEventListener('DOMContentLoaded', async () => {
       const response = await apiFetch('/api/auth/me');
