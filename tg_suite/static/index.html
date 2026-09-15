@@ -92,7 +92,7 @@
       transition: all 0.25s ease;
     }
     .hero-wrap { position: relative; max-width: 1280px; margin-left: auto; margin-right: auto; }
-    .hero-search { position: absolute; top: 0; right: 22px; width: 300px; z-index: 3; }
+    .hero-search { position: static; width: 300px; margin: 0 0 18px auto; z-index: 3; }
     .search-capsule:focus-within {
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
       transform: translateY(-1px);
@@ -453,10 +453,6 @@
     .brand-dropdown-account { margin-top: 8px; font-size: 14px; font-weight: 800; color: #0f172a; }
     .brand-dropdown-divider { margin: 8px 0; border: 0; border-top: 1px solid rgba(100,116,139,0.25); }
     .footer-site { position: fixed; left: 0; right: 0; bottom: 12px; z-index: 5; margin: 0 !important; padding: 0 16px !important; pointer-events: none; }
-
-    @media (max-width: 1200px) {
-      .hero-search { position: static; width: min(360px, calc(100% - 24px)); margin: 0 auto 18px; }
-    }
 
     @media (max-width: 640px) {
       body { min-width: 0; overflow-x: hidden; }
