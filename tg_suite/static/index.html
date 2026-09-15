@@ -552,7 +552,7 @@
   <!-- ========================================== -->
   <div class="module-nav-row">
     <div class="category-capsule-bar flex items-center flex-wrap justify-center gap-1">
-      <button onclick="filterCategory('accounts', this)" class="cat-btn active">AI-重选</button>
+      <button onclick="filterCategory('marketing', this)" class="cat-btn active">营销触达</button>
       <button onclick="filterCategory('monitor', this)" class="cat-btn">商机雷达</button>
       <button onclick="filterCategory('data', this)" class="cat-btn">数据中心</button>
       <button onclick="filterCategory('settings', this)" class="cat-btn">系统设置</button>
@@ -584,6 +584,16 @@
     <!-- 卡片网格：经典独角暗黑圆盘 + 精简紧凑小模块 (3列优雅排版) -->
     <div id="cardGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-w-6xl mx-auto">
 
+      <section class="module-card" data-category="marketing" data-keywords="营销触达 群采集 群成员 采集 数据筛选 群发 私信 频道克隆">
+        <div class="module-heading"><strong>营销触达</strong><span>采集 · 筛选 · 触达</span></div>
+        <div class="module-items">
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><h3 class="font-bold text-slate-900 text-sm">群成员采集</h3><div class="text-[11.5px] text-slate-500">成员 · 活跃发言 · 评论用户</div></div><button onclick="openModal('modal-scraper')" class="btn-action-green">开始采集</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><h3 class="font-bold text-slate-900 text-sm">数据筛选</h3><div class="text-[11.5px] text-slate-500">查看受众池 · 条件筛选 · 导出</div></div><button onclick="openModal('modal-audience-filter')" class="btn-action-green">筛选数据</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><h3 class="font-bold text-slate-900 text-sm">批量群发</h3><div class="text-[11.5px] text-slate-500">Spintax 模板 · 标签筛选 · 限速发送</div></div><button onclick="openModal('modal-sender')" class="btn-action-green">发起群发</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><h3 class="font-bold text-slate-900 text-sm">精准私信</h3><div class="text-[11.5px] text-slate-500">按标签筛选并发送私信话术</div></div><button onclick="openModal('modal-dm')" class="btn-action-green">配置私信</button></div>
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><h3 class="font-bold text-slate-900 text-sm">频道克隆</h3><div class="text-[11.5px] text-slate-500">复制频道内容 · 支持内容替换</div></div><button onclick="openModal('modal-cloner')" class="btn-action-green">开始克隆</button></div>
+        </div>
+      </section>
       <!-- 2. 商机雷达：关键词监听与 Bot 通知 -->
       <section class="module-card" data-category="monitor" data-keywords="商机 关键词 监听 截流 需求 监控 bot 通知 告警">
         <div class="module-heading"><strong>商机雷达</strong><span>监听 · 告警 · 截流</span></div>
@@ -607,6 +617,7 @@
       <section class="module-card" data-category="settings" data-keywords="设置 api hash key 配置 网络 代理">
         <div class="module-heading"><strong>系统设置</strong><span>API · 密钥 · 部署</span></div>
         <div class="module-items">
+          <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">AI-重选</h3><span class="chip-purple">账号策略</span></div><div class="text-[11.5px] text-slate-500 truncate">账号轮换与智能触达策略入口</div></div><button onclick="openModal('modal-settings')" class="btn-action-green">打开设置</button></div>
           <div class="mini-func-card module-item"><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">系统与 API 配置</h3><span class="chip-blue">API: 30958113</span><span class="chip-teal">就绪</span></div><div class="text-[11.5px] text-slate-500 truncate">密钥管理 · 端口 · Railway</div></div><button onclick="openModal('modal-settings')" class="btn-action-green">配置参数</button></div>
         </div>
       </section>    </div>
@@ -817,6 +828,11 @@
     </div>
   </div>
 
+  <div id="modal-scraper" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50"><div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto"><div class="flex justify-between items-center pb-3 border-b border-slate-100"><h3 class="text-base font-bold text-slate-800">🔍 群成员采集</h3><button onclick="closeModal('modal-scraper')" class="text-slate-400 text-lg font-bold">✕</button></div><div class="mt-4 space-y-3 text-xs"><input id="scrapeAccountName" placeholder="工作账号名称" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><input id="scrapeGroupLink" placeholder="目标群组/频道链接" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><select id="scrapeMode" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><option value="members">群成员</option><option value="active_chatters">活跃发言者</option><option value="commenters">频道评论者</option></select><div class="flex gap-2"><input id="scrapeLimit" type="number" value="1000" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg"><input id="scrapeDays" type="number" value="7" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg"></div><div class="flex justify-end"><button onclick="startScrape()" class="btn-action-sm">开始采集</button></div></div></div></div>
+  <div id="modal-audience-filter" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50"><div class="modal-content-box w-full max-w-4xl p-5 sm:p-6 overflow-y-auto"><div class="flex justify-between items-center pb-3 border-b border-slate-100"><h3 class="text-base font-bold text-slate-800">📊 受众数据筛选</h3><button onclick="closeModal('modal-audience-filter')" class="text-slate-400 text-lg font-bold">✕</button></div><div class="mt-4 space-y-3 text-xs"><div class="flex gap-2"><input id="audienceTag" placeholder="标签，例如 member" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg"><label class="flex items-center gap-1"><input id="audienceActive" type="checkbox">仅活跃</label><button onclick="loadAudienceUsers()" class="btn-action-sm">筛选</button><a href="/api/scraper/export-csv" class="btn-action-sm" download>导出 CSV</a></div><div class="overflow-x-auto border border-slate-200 rounded-lg max-h-96"><table class="data-table"><thead><tr><th>用户</th><th>用户名</th><th>来源群组</th><th>标签</th><th>消息数</th></tr></thead><tbody id="audienceTableBody"></tbody></table></div></div></div></div>
+  <div id="modal-sender" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50"><div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto"><div class="flex justify-between items-center pb-3 border-b border-slate-100"><h3 class="text-base font-bold text-slate-800">✉️ 批量群发</h3><button onclick="closeModal('modal-sender')" class="text-slate-400 text-lg font-bold">✕</button></div><div class="mt-4 space-y-3 text-xs"><input id="senderTag" placeholder="受众标签（可选）" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><textarea id="senderText" rows="4" class="w-full p-2.5 border border-slate-200 rounded-lg" placeholder="消息模板，支持 {你好|您好} 变体"></textarea><div class="flex justify-end"><button onclick="startSender()" class="btn-action-sm">发起群发</button></div></div></div></div>
+  <div id="modal-dm" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50"><div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto"><div class="flex justify-between items-center pb-3 border-b border-slate-100"><h3 class="text-base font-bold text-slate-800">💬 精准私信触达</h3><button onclick="closeModal('modal-dm')" class="text-slate-400 text-lg font-bold">✕</button></div><div class="mt-4 space-y-3 text-xs"><input id="dmTag" placeholder="受众标签（可选）" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><textarea id="dmMessage" rows="4" class="w-full p-2.5 border border-slate-200 rounded-lg" placeholder="私信话术"></textarea><div class="flex justify-end"><button onclick="startDM()" class="btn-action-sm">发送私信</button></div></div></div></div>
+  <div id="modal-cloner" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50"><div class="modal-content-box w-full max-w-xl p-5 sm:p-6 overflow-y-auto"><div class="flex justify-between items-center pb-3 border-b border-slate-100"><h3 class="text-base font-bold text-slate-800">⚡ 频道克隆</h3><button onclick="closeModal('modal-cloner')" class="text-slate-400 text-lg font-bold">✕</button></div><div class="mt-4 space-y-3 text-xs"><input id="cloneAccount" placeholder="工作账号名称" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><input id="cloneSource" placeholder="源频道链接" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><input id="cloneTarget" placeholder="目标频道链接" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><div class="flex justify-end"><button onclick="startClone()" class="btn-action-sm">开始克隆</button></div></div></div></div>
   <!-- 5. 商机线索数据库 (SQLite) 弹窗 -->
   <div id="modal-leads" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
     <div class="modal-content-box w-full max-w-4xl p-5 sm:p-6 overflow-y-auto">
@@ -960,7 +976,7 @@
     }
 
     const moduleTitles = {
-      accounts: 'AI-重选',
+      marketing: '营销触达',
       monitor: '商机雷达',
       data: '数据中心',
       settings: '系统设置'
@@ -1402,6 +1418,13 @@
       } catch (error) { alert('保存失败: ' + error.message); }
     }
 
+
+    async function runMarketingForm(url, fields, modalId) { const form=new FormData(); Object.entries(fields).forEach(([k,v])=>{if(v!==''&&v!=null)form.append(k,v)}); const r=await apiFetch(url,{method:'POST',body:form}); const d=await r.json(); if(!r.ok)throw new Error(d.detail||d.message||'操作失败'); alert(d.message||'任务已提交'); closeModal(modalId); }
+    async function startScrape(){try{await runMarketingForm('/api/scraper/start',{account_name:document.getElementById('scrapeAccountName').value.trim(),target_link:document.getElementById('scrapeGroupLink').value.trim(),scrape_mode:document.getElementById('scrapeMode').value,limit:document.getElementById('scrapeLimit').value,days_lookback:document.getElementById('scrapeDays').value},'modal-scraper')}catch(e){alert(e.message)}}
+    async function startSender(){try{await runMarketingForm('/api/sender/start-dm',{template:document.getElementById('senderText').value.trim(),tag_filter:document.getElementById('senderTag').value.trim(),max_limit:50,max_per_account:20},'modal-sender')}catch(e){alert(e.message)}}
+    async function startDM(){try{await runMarketingForm('/api/sender/start-dm',{template:document.getElementById('dmMessage').value.trim(),tag_filter:document.getElementById('dmTag').value.trim(),max_limit:50,max_per_account:20},'modal-dm')}catch(e){alert(e.message)}}
+    async function startClone(){try{await runMarketingForm('/api/pro/clone-channel',{account_name:document.getElementById('cloneAccount').value.trim(),source_channel:document.getElementById('cloneSource').value.trim(),target_channel:document.getElementById('cloneTarget').value.trim(),limit:200},'modal-cloner')}catch(e){alert(e.message)}}
+    async function loadAudienceUsers(){const tag=document.getElementById('audienceTag').value.trim();const active=document.getElementById('audienceActive').checked;const body=document.getElementById('audienceTableBody');body.innerHTML='<tr><td colspan="5" class="text-center py-4 text-slate-400">查询中...</td></tr>';try{const r=await apiFetch(`/api/scraper/users?limit=500&only_active=${active}&tag=${encodeURIComponent(tag)}`);const users=await r.json();body.innerHTML=users.length?users.map(u=>`<tr><td>${u.first_name||''} ${u.last_name||''}</td><td>${u.username||''}</td><td>${u.source_group||''}</td><td>${u.tags||''}</td><td>${u.messages_count||0}</td></tr>`).join(''):'<tr><td colspan="5" class="text-center py-4 text-slate-400">没有符合条件的数据</td></tr>'}catch(e){body.innerHTML=`<tr><td colspan="5" class="text-center py-4 text-rose-500">${e.message}</td></tr>`}}
 
     window.addEventListener('DOMContentLoaded', async () => {
       const response = await apiFetch('/api/auth/me');
