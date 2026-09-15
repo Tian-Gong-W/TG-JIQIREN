@@ -211,6 +211,16 @@ class TelegramAutoResponder:
         async def handler(event):
             text = event.raw_text.strip()
             sender = await event.get_sender()
+
+            if self.ai_callback:
+                user_info = {
+                    "first_name": getattr(sender, "first_name", ""),
+                    "username": getattr(sender, "username", ""),
+                }
+                reply_msg = await self.ai_callback(text, user_info)
+                await event.reply(reply_msg)
+                print(f"[🤖 AI 自动应答] 已回复用户 @{getattr(sender, 'username', '') or getattr(sender, 'id', '')}")
+                return
             
             for keyword, reply_template in self.rules.items():
                 if keyword in text:
