@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preload" as="image" href="/assets/yun-ding.jpg?v=956ec5f" fetchpriority="high">
   <title>雲頂天宮 · Telegram 智能矩阵与商机中枢</title>
   <!-- Google Fonts & Tailwind -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -472,7 +473,7 @@
       .module-popover-close { width: 34px; height: 34px; font-size: 24px; }
       .module-popover-body { gap: 8px; }
       .mini-func-card { min-height: 56px; padding: 8px 10px 8px 14px; gap: 8px; }
-      .mini-func-card h3 { font-size: 15px; }
+      .mini-func-card h3 { font-size: 15px; white-space: normal; line-height: 1.35; }
       .mini-func-card .text-\[11\.5px\] { font-size: 12px; }
       .btn-action-green { flex: 0 0 auto; font-size: 12px; padding: 7px 10px; }
       .chip-blue, .chip-teal, .chip-orange, .chip-purple { font-size: 10px; }
@@ -480,6 +481,13 @@
       .data-table { font-size: 12px; display: block; overflow-x: auto; white-space: nowrap; }
       .brand-dropdown { left: 0; width: min(220px, calc(100vw - 24px)); }
       .footer-site { position: static; margin-top: 40px !important; padding-bottom: 24px !important; }
+    }
+    @media (max-width: 420px) {
+      .hero-title { font-size: 2rem; letter-spacing: 0; }
+      .hero-search { width: calc(100% - 16px); }
+      .module-popover-panel { width: calc(100vw - 16px); padding: 9px; }
+      .mini-func-card { align-items: flex-start; }
+      .mini-func-card .btn-action-green { white-space: nowrap; }
     }
   </style>
 </head>

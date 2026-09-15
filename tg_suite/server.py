@@ -28,6 +28,7 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, Req
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from starlette.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel
 import glob
 import json
@@ -179,6 +180,7 @@ app = FastAPI(
     docs_url=None if TG_ENV == "production" else "/docs",
     redoc_url=None if TG_ENV == "production" else "/redoc",
 )
+app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
 
 @app.get("/healthz")
 async def healthz():
@@ -195,6 +197,19 @@ async def protect_api_routes(request: Request, call_next):
         if not _request_role(request, credentials):
             return JSONResponse({"detail": "需要登录或 Bearer API Key"}, status_code=401)
     return await call_next(request)
+
+@app.middleware("http")
+async def add_cache_headers(request: Request, call_next):
+    """缓存带版本参数的静态资源，同时避免 HTML/API 被旧内容长期缓存。"""
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/assets/"):
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    elif path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    elif path in {"/", "/demo"} or path.endswith(".html"):
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return response
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ACCOUNTS_DIR = os.path.join(BASE_DIR, "accounts")
