@@ -165,6 +165,10 @@
     }
     .account-refresh-btn:hover { color: rgba(255,255,255,0.78); }
     .account-status-actions { display: flex; align-items: center; gap: 16px; }
+    .account-quick-actions { display: flex; align-items: center; gap: 12px; }
+    .account-phone-btn { border: 0; padding: 4px 0; background: transparent; color: #ffffff; font-size: 15px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; text-shadow: 0 2px 8px rgba(15,23,42,0.16); cursor: pointer; white-space: nowrap; }
+    .inline-account-panel { width: min(calc(100% - 32px), 1150px); margin: 0 auto 16px; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.5); border-radius: 18px; background: rgba(255,255,255,0.16); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+    .inline-account-panel table { width: 100%; }
     .account-online-pill {
       padding: 4px 0;
       color: #ffffff;
@@ -192,13 +196,14 @@
         grid-template-columns: 1fr;
         gap: 8px;
       }
-      .account-refresh-btn { justify-self: start; }
+      .account-quick-actions { justify-self: start; }
       .account-status-actions { justify-self: end; }
     }
     @media (max-width: 640px) {
       .module-nav-row { width: calc(100% - 24px); }
-      .account-refresh-btn { font-size: 13px; }
+      .account-refresh-btn, .account-phone-btn { font-size: 13px; }
       .account-status-actions { gap: 5px; }
+      .inline-account-panel { width: calc(100% - 24px); padding: 10px; }
     }
 
     /* 五个父级功能模块：子功能收纳在模块内部 */
@@ -544,9 +549,12 @@
   <!-- 3. 五个父模块与账号状态同排 -->
   <!-- ========================================== -->
   <div class="module-nav-row">
-    <button id="sectionTitle" type="button" onclick="refreshAccountStatus()" class="account-refresh-btn">↻ 刷新账号状态</button>
+    <div class="account-quick-actions">
+      <button id="sectionTitle" type="button" onclick="refreshAccountStatus()" class="account-refresh-btn">↻ 刷新账号状态</button>
+      <button type="button" onclick="openModal('modal-phone-login')" class="account-phone-btn">＋ 手机号登录</button>
+    </div>
     <div class="category-capsule-bar flex items-center flex-wrap justify-center gap-1">
-      <button onclick="filterCategory('accounts', this)" class="cat-btn active">账号中心</button>
+      <button onclick="filterCategory('accounts', this)" class="cat-btn active">AI-重选</button>
       <button onclick="filterCategory('monitor', this)" class="cat-btn">商机雷达</button>
       <button onclick="filterCategory('data', this)" class="cat-btn">数据中心</button>
       <button onclick="filterCategory('settings', this)" class="cat-btn">系统设置</button>
@@ -557,6 +565,17 @@
     </div>
   </div>
 
+  <!-- 已登录账号直接展示在主页面 -->
+  <section class="inline-account-panel" aria-label="已登录账号">
+    <div class="flex items-center justify-between gap-3 mb-2">
+      <div class="flex items-center gap-2 text-white"><strong>已登录账号</strong><span id="inlineAccountsTotal" class="text-xs opacity-80">0 条</span></div>
+      <button type="button" onclick="openModal('modal-batch-import')" class="account-add-btn">＋ 导入 Session</button>
+    </div>
+    <div class="overflow-x-auto rounded-lg bg-white/90">
+      <table class="data-table"><thead><tr><th>ID</th><th>手机号 / 标识</th><th>格式</th><th>DC</th><th>状态</th><th class="text-right">操作</th></tr></thead><tbody id="inlineAccountsTableBody"><tr><td colspan="6" class="text-center py-4 text-slate-500 text-xs">正在读取账号...</td></tr></tbody></table>
+    </div>
+  </section>
+
   <!-- ========================================== -->
   <!-- 4. 精简小巧的功能卡片网格 (换小模块，清爽不花哨) -->
   <!-- ========================================== -->
@@ -564,21 +583,6 @@
     
     <!-- 卡片网格：经典独角暗黑圆盘 + 精简紧凑小模块 (3列优雅排版) -->
     <div id="cardGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-w-6xl mx-auto">
-
-      <!-- 1. 账号中心：账号导入与资产管理 -->
-      <section class="module-card" data-category="accounts" data-keywords="账号 导入 测活 tdata session 资产 验证码 spambot">
-        <div class="module-heading"><strong>账号中心</strong><span>导入 · 管理 · 风控</span></div>
-        <div class="module-items">
-          <div class="mini-func-card module-item" data-keywords="导号 导入 测活 tdata session 批量 上传 zip">
-            <div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">批量导号与测活</h3><span class="chip-blue">自动测活</span><span class="chip-teal">ZIP</span></div><div class="text-[11.5px] text-slate-500 truncate">已纳管: <span id="cardAccSummary" class="text-slate-800 font-bold font-mono">0 个账号</span></div></div>
-            <button onclick="openModal('modal-batch-import')" class="btn-action-green">批量导入</button>
-          </div>
-          <div class="mini-func-card module-item" data-keywords="账号 矩阵 资产 验证码 封禁 spambot">
-            <div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><h3 class="font-bold text-slate-900 text-sm truncate">账号资产管理</h3><span class="chip-blue">多号轮换</span><span class="chip-teal">验证码</span></div><div class="text-[11.5px] text-slate-500 truncate">桌面启动 · Spambot 限制查询</div></div>
-            <button onclick="openModal('modal-accounts')" class="btn-action-green">管理账号</button>
-          </div>
-        </div>
-      </section>
 
       <!-- 2. 商机雷达：关键词监听与 Bot 通知 -->
       <section class="module-card" data-category="monitor" data-keywords="商机 关键词 监听 截流 需求 监控 bot 通知 告警">
@@ -956,17 +960,14 @@
     }
 
     const moduleTitles = {
-      accounts: '账号中心',
+      accounts: 'AI-重选',
       monitor: '商机雷达',
       data: '数据中心',
       settings: '系统设置'
     };
 
     function openModulePopover(category) {
-      if (category === 'accounts') {
-        openModal('modal-accounts');
-        return;
-      }
+      if (category === 'accounts') return;
       const source = document.querySelector(`#cardGrid > .module-card[data-category="${category}"]`);
       const popover = document.getElementById('modulePopover');
       const body = document.getElementById('modulePopoverBody');
@@ -980,7 +981,6 @@
 
     function refreshAccountStatus() {
       loadStats();
-      openModal('modal-accounts');
       loadAccounts();
     }
 
@@ -1089,7 +1089,9 @@
 
         setUploadFiles([]);
         document.getElementById('zipFileInput').value = '';
+        loadAccounts();
         loadStats();
+        setTimeout(() => closeModal('modal-batch-import'), 1400);
       } catch (err) {
         statusMsg.textContent = `❌ 发生错误: ${err.message}`;
       } finally {
@@ -1130,7 +1132,9 @@
           </div>
         `).join('');
 
+        loadAccounts();
         loadStats();
+        setTimeout(() => closeModal('modal-batch-import'), 1400);
       } catch (err) {
         statusMsg.textContent = `❌ 发生错误: ${err.message}`;
       }
@@ -1146,7 +1150,8 @@
           document.getElementById('statTotalAccounts').textContent = d.total_accounts || d.accounts_count || 0;
           const navLeadCount = document.getElementById('navLeadCount');
           if (navLeadCount) navLeadCount.textContent = d.intercepted_leads || 0;
-          document.getElementById('cardAccSummary').textContent = `${d.active_accounts || d.accounts_count || 0} 个活跃账号`;
+          const cardAccSummary = document.getElementById('cardAccSummary');
+          if (cardAccSummary) cardAccSummary.textContent = `${d.active_accounts || d.accounts_count || 0} 个活跃账号`;
         }
       } catch (e) { console.error(e); }
     }
@@ -1155,20 +1160,26 @@
     async function loadAccounts() {
       const tbody = document.getElementById('accountsTableBody');
       const totalBadge = document.getElementById('accountsTotalBadge');
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400 text-xs">正在读取账号...</td></tr>';
+      const inlineTbody = document.getElementById('inlineAccountsTableBody');
+      const inlineTotal = document.getElementById('inlineAccountsTotal');
+      if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400 text-xs">正在读取账号...</td></tr>';
+      if (inlineTbody) inlineTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-slate-500 text-xs">正在读取账号...</td></tr>';
 
       try {
         const res = await apiFetch('/api/accounts');
         if (!res.ok) throw new Error('无法读取账号');
         const list = await res.json();
-        totalBadge.textContent = `${list.length} 条`;
+        if (totalBadge) totalBadge.textContent = `${list.length} 条`;
+        if (inlineTotal) inlineTotal.textContent = `${list.length} 条`;
 
         if (list.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-400 text-xs">暂无已导入账号，请点击 "+ 批量导入"</td></tr>';
+          const empty = '<tr><td colspan="6" class="text-center py-8 text-slate-400 text-xs">暂无已导入账号，请点击 “＋ 导入 Session”</td></tr>';
+          if (tbody) tbody.innerHTML = empty;
+          if (inlineTbody) inlineTbody.innerHTML = empty;
           return;
         }
 
-        tbody.innerHTML = list.map((acc, idx) => `
+        const rows = list.map((acc, idx) => `
           <tr>
             <td class="font-mono text-slate-500">${idx + 1}</td>
             <td><div class="font-mono font-bold text-slate-900">${acc.phone || acc.name}</div><div class="text-[10px] text-slate-400">${acc.display_name || acc.username || acc.remark || ''}</div></td>
@@ -1183,8 +1194,12 @@
             </td>
           </tr>
         `).join('');
+        if (tbody) tbody.innerHTML = rows;
+        if (inlineTbody) inlineTbody.innerHTML = rows;
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-rose-500 text-xs">${err.message}</td></tr>`;
+        const failure = `<tr><td colspan="6" class="text-center py-6 text-rose-500 text-xs">${err.message}</td></tr>`;
+        if (tbody) tbody.innerHTML = failure;
+        if (inlineTbody) inlineTbody.innerHTML = failure;
       }
     }
 
@@ -1390,7 +1405,7 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       const response = await apiFetch('/api/auth/me');
-      if (response.ok) loadStats();
+      if (response.ok) { loadStats(); loadAccounts(); }
     });
   </script>
 </body>
