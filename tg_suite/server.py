@@ -8,6 +8,7 @@ import shutil
 import zipfile
 import subprocess
 import asyncio
+import httpx
 import time
 # 自动加载 .env 配置文件 (纯内置实现，无需第三方库)
 env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
@@ -169,6 +170,14 @@ class KeywordRuleRequest(BaseModel):
     priority: int = 0
     remark: str = ""
 
+class AICopyRequest(BaseModel):
+    topic: str
+    context: str = ""
+    tone: str = "专业、自然"
+    language: str = "中文"
+    count: int = 3
+    max_tokens: int = 800
+
 class BotTargetRequest(BaseModel):
     name: str = "未命名 Bot"
     bot_token: str
@@ -181,6 +190,47 @@ app = FastAPI(
     redoc_url=None if TG_ENV == "production" else "/redoc",
 )
 app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
+
+@app.get("/api/ai/config")
+async def get_ai_config(_: str = Depends(require_auth)):
+    """只返回 AI 配置元数据，绝不返回 API Key。"""
+    return {
+        "configured": bool(os.getenv("TG_AI_API_KEY", "").strip()),
+        "base_url": os.getenv("TG_AI_BASE_URL", "https://api.openai.com/v1").rstrip("/"),
+        "model": os.getenv("TG_AI_MODEL", "gpt-4o-mini"),
+        "provider": os.getenv("TG_AI_PROVIDER", "OpenAI-compatible"),
+    }
+
+@app.post("/api/ai/generate-copy")
+async def generate_ai_copy(payload: AICopyRequest, _: str = Depends(require_admin)):
+    """调用任意 OpenAI-compatible /chat/completions 接口生成营销文案。"""
+    api_key = os.getenv("TG_AI_API_KEY", "").strip()
+    base_url = os.getenv("TG_AI_BASE_URL", "https://api.openai.com/v1").strip().rstrip("/")
+    model = os.getenv("TG_AI_MODEL", "gpt-4o-mini").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="尚未配置 TG_AI_API_KEY，请先在 Railway 环境变量中配置 AI API Key")
+    if not payload.topic.strip():
+        raise HTTPException(status_code=400, detail="请输入文案主题或原始需求")
+    count = max(1, min(int(payload.count), 10))
+    max_tokens = max(100, min(int(payload.max_tokens), 4000))
+    system = f"你是 Telegram 营销文案助手。输出语言：{payload.language}。语气：{payload.tone}。一次生成 {count} 个不同版本。每个版本独立编号，只输出文案，不要解释。"
+    user = f"主题/原始需求：{payload.topic.strip()}\n补充上下文：{payload.context.strip() or '无'}\n请生成适合 Telegram 发布的短文案，避免夸大、诱导和违规承诺。"
+    body = {"model": model, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}], "temperature": 0.8, "max_tokens": max_tokens}
+    try:
+        async with httpx.AsyncClient(timeout=75.0) as client:
+            response = await client.post(f"{base_url}/chat/completions", headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=body)
+        if response.status_code >= 400:
+            detail = response.text[:1000]
+            raise HTTPException(status_code=502, detail=f"AI 服务返回 {response.status_code}: {detail}")
+        data = response.json()
+        content = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+        if not content:
+            raise HTTPException(status_code=502, detail="AI 服务返回了空内容")
+        return {"status": "success", "model": model, "content": content, "usage": data.get("usage", {})}
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="AI 服务请求超时")
+    except httpx.RequestError as exc:
+        raise HTTPException(status_code=502, detail=f"无法连接 AI 服务: {exc}")
 
 @app.get("/healthz")
 async def healthz():
