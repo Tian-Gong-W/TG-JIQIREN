@@ -88,6 +88,11 @@ def _create_session_token(role: str) -> str:
     return base64.urlsafe_b64encode(payload + b":" + signature).decode()
 
 
+def _safe_text_equal(left: str, right: str) -> bool:
+    """以 UTF-8 字节比较文本，兼容中文账号并保持恒定时间比较。"""
+    return hmac.compare_digest((left or "").encode("utf-8"), (right or "").encode("utf-8"))
+
+
 def _verify_session_token(token: str) -> Optional[str]:
     try:
         raw = base64.urlsafe_b64decode(token.encode()).decode()
@@ -317,9 +322,9 @@ def _copy_session_assets(source: Path, destination: Path) -> None:
 
 @app.post("/api/auth/login")
 async def auth_login(payload: AuthLoginRequest, response: Response):
-    password_matches = bool(ADMIN_PASSWORD) and hmac.compare_digest(payload.password, ADMIN_PASSWORD)
-    api_key_matches = bool(ADMIN_API_KEY) and hmac.compare_digest(payload.password, ADMIN_API_KEY)
-    if not hmac.compare_digest(payload.username, ADMIN_USERNAME) or not (password_matches or api_key_matches):
+    password_matches = bool(ADMIN_PASSWORD) and _safe_text_equal(payload.password, ADMIN_PASSWORD)
+    api_key_matches = bool(ADMIN_API_KEY) and _safe_text_equal(payload.password, ADMIN_API_KEY)
+    if not _safe_text_equal(payload.username, ADMIN_USERNAME) or not (password_matches or api_key_matches):
         raise HTTPException(status_code=401, detail="用户名或密码错误")
     response.set_cookie(
         SESSION_COOKIE, _create_session_token("admin"), max_age=SESSION_TTL_SECONDS,
