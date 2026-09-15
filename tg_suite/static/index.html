@@ -92,7 +92,7 @@
       transition: all 0.25s ease;
     }
     .hero-wrap { position: relative; max-width: 1280px; margin-left: auto; margin-right: auto; }
-    .hero-search { position: static; width: 300px; margin: 0 0 18px auto; z-index: 3; }
+    .header-search { width: 300px; margin: 0; }
     .search-capsule:focus-within {
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
       transform: translateY(-1px);
@@ -458,7 +458,7 @@
       body { min-width: 0; overflow-x: hidden; }
       header { padding-left: 12px; padding-right: 12px; }
       .badge-yunding { padding: 7px 15px; font-size: 14px; letter-spacing: 2px; }
-      .hero-search { position: static; width: calc(100% - 24px); margin: 0 auto 24px; }
+      .header-search { width: 100%; margin-top: 4px; }
       .search-capsule { max-width: none; padding: 9px 13px; }
       .hero-title { font-size: clamp(1.8rem, 9vw, 2.55rem); line-height: 1.22; letter-spacing: 1px; }
       .category-capsule-bar { border-radius: 20px; padding: 5px; gap: 3px; }
@@ -515,19 +515,20 @@
       <span class="text-white/90 text-xs font-medium hidden sm:inline-block">💬</span>
     </div>
 
+    <!-- 顶部右侧搜索胶囊，与品牌胶囊保持同一行 -->
+    <div class="header-search search-capsule flex items-center px-4 py-2">
+      <input type="text" id="globalSearchInput" placeholder="搜索功能板块 / 关键词..." class="w-full bg-transparent text-xs text-slate-700 placeholder-slate-400 focus:outline-none" oninput="handleSearch(this.value)">
+      <svg class="w-4 h-4 text-slate-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+    </div>
+
   </header>
 
   <!-- ========================================== -->
   <!-- 2. 中间大字 Hero 标语 (保留大字与优雅排版) -->
   <!-- ========================================== -->
   <div class="hero-wrap text-center mt-6 mb-8 px-4">
-    <!-- 搜索框退到主标语区域外侧，避免拉长标题区域 -->
-    <div class="hero-search search-capsule flex items-center px-4 py-2">
-      <input type="text" id="globalSearchInput" placeholder="搜索功能板块 / 关键词..." class="w-full bg-transparent text-xs text-slate-700 placeholder-slate-400 focus:outline-none" oninput="handleSearch(this.value)">
-      <svg class="w-4 h-4 text-slate-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-      </svg>
-    </div>
     <h1 class="hero-title text-4xl sm:text-5xl md:text-6xl tracking-wider">
       我将在美好的时间遇到你
     </h1>
