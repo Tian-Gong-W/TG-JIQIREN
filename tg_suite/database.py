@@ -301,6 +301,21 @@ def save_intercepted_lead(lead_data: Dict[str, Any]):
     conn.commit()
     conn.close()
 
+
+def get_ai_settings() -> dict:
+    conn = get_db_connection(); cur = conn.cursor()
+    cur.execute("CREATE TABLE IF NOT EXISTS ai_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    rows = cur.execute("SELECT key, value FROM ai_settings").fetchall(); conn.commit(); conn.close()
+    return {row["key"]: row["value"] for row in rows}
+
+def save_ai_settings(values: dict) -> None:
+    conn = get_db_connection(); cur = conn.cursor()
+    cur.execute("CREATE TABLE IF NOT EXISTS ai_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    for key, value in values.items():
+        if value is not None and str(value).strip():
+            cur.execute("INSERT INTO ai_settings(key, value) VALUES(?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (key, str(value).strip()))
+    conn.commit(); conn.close()
+
 init_db()
 init_leads_table()
 
