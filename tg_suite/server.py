@@ -1117,6 +1117,11 @@ async def delete_monitor_bot_target(target_id: int, _: str = Depends(require_adm
         raise HTTPException(status_code=404, detail="Bot 通知目标不存在")
     return {"status": "success"}
 
+# 背景图显式路由：避免 Railway 静态挂载对二进制资源返回 404
+@app.get("/assets/yun-ding.jpg")
+async def yun_ding_background():
+    return FileResponse(os.path.join(BASE_DIR, "static", "assets", "yun-ding.jpg"), media_type="image/jpeg")
+
 # 挂载静态网页
 app.mount("/", StaticFiles(directory=os.path.join(BASE_DIR, "static"), html=True), name="static")
 
