@@ -198,12 +198,13 @@ class TelegramMassSender:
 class TelegramAutoResponder:
     """关键词自动回复监听器"""
 
-    def __init__(self, client: TelegramClient, rules: Dict[str, str]):
+    def __init__(self, client: TelegramClient, rules: Dict[str, str], ai_callback: Optional[Callable[[str, Dict[str, Any]], Any]] = None):
         """
         :param rules: 规则字典，例如 {"价格": "我们的报价单是...", "怎么买": "请联系客服微信..."}
         """
         self.client = client
         self.rules = rules
+        self.ai_callback = ai_callback
 
     def start(self):
         @self.client.on(events.NewMessage(incoming=True, func=lambda e: e.is_private))
@@ -213,10 +214,8 @@ class TelegramAutoResponder:
             
             for keyword, reply_template in self.rules.items():
                 if keyword in text:
-                    reply_msg = SpintaxParser.parse(reply_template, {
-                        "first_name": getattr(sender, 'first_name', ''),
-                        "username": getattr(sender, 'username', '')
-                    })
+                    user_info = {"first_name": getattr(sender, 'first_name', ''), "username": getattr(sender, 'username', '')}
+                    reply_msg = await self.ai_callback(text, user_info) if self.ai_callback else SpintaxParser.parse(reply_template, user_info)
                     await event.reply(reply_msg)
                     print(f"[🤖 自动应答] 捕获关键词 [{keyword}]，已回复用户 @{sender.username or sender.id}")
                     break

@@ -1,7 +1,7 @@
 import asyncio
 import random
 import time
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Callable, Awaitable
 from telethon import TelegramClient, events
 from telethon.tl.functions.channels import GetFullChannelRequest
 from telethon.tl.functions.messages import GetDiscussionMessageRequest
@@ -86,12 +86,14 @@ class ChannelAutoCommenter:
         client: TelegramClient,
         monitored_channels: List[str],
         comment_template: str,
-        delay_seconds: float = 3.0
+        delay_seconds: float = 3.0,
+        ai_callback: Optional[Callable[[str], Awaitable[str]]] = None
     ):
         self.client = client
         self.monitored_channels = monitored_channels
         self.comment_template = comment_template
         self.delay_seconds = delay_seconds
+        self.ai_callback = ai_callback
 
     async def start_monitoring(self):
         """挂机监听频道新消息并自动在讨论组评论"""
@@ -119,8 +121,8 @@ class ChannelAutoCommenter:
                 await asyncio.sleep(self.delay_seconds)
 
             try:
-                # 动态解析 Spintax 引流评论文案
-                comment_text = SpintaxParser.parse(self.comment_template)
+                # 动态生成评论：可使用 AI，否则使用 Spintax
+                comment_text = await self.ai_callback(event.raw_text) if self.ai_callback else SpintaxParser.parse(self.comment_template)
 
                 # 获取对应的讨论组消息 ID 并回复
                 discussion = await self.client(GetDiscussionMessageRequest(

@@ -37,11 +37,11 @@ import json
 import database
 from core.scraper import TelegramScraper
 from core.inviter import TelegramInviter
-from core.sender import TelegramMassSender, SpintaxParser
+from core.sender import TelegramMassSender, SpintaxParser, TelegramAutoResponder
 from core.cloner import ChannelCloner
 from core.interceptor import KeywordInterceptor
 from core.account_actions import AccountActionManager
-from core.broadcaster import GroupAutoPoster
+from core.broadcaster import GroupAutoPoster, ChannelAutoCommenter
 from core.contacts_stories import ContactsAndStoriesManager
 
 try:
@@ -259,6 +259,109 @@ async def generate_ai_copy(payload: AICopyRequest, _: str = Depends(require_admi
     except httpx.RequestError as exc:
         raise HTTPException(status_code=502, detail=f"无法连接 AI 服务: {exc}")
 
+async def _generate_ai_text(prompt: str, context: str = "", purpose: str = "回复") -> str:
+    """统一 AI 文本生成，供文案、自动回复、频道评论复用。"""
+    provider = os.getenv("TG_AI_PROVIDER", "OpenAI-compatible").strip().lower()
+    api_key = os.getenv("TG_AI_API_KEY", "").strip() or os.getenv("MISTRAL_API_KEY", "").strip()
+    base_url = os.getenv("TG_AI_BASE_URL", "https://api.openai.com/v1").strip().rstrip("/")
+    model = os.getenv("TG_AI_MODEL", "gpt-4o-mini").strip()
+    if provider in {"mistral", "mistral_conversations", "mistral-agents"}:
+        base_url = os.getenv("TG_AI_BASE_URL", "https://api.mistral.ai/v1").strip().rstrip("/")
+    if not api_key: raise RuntimeError("未配置 AI API Key")
+    system = f"你是 Telegram 社区运营助手，负责生成{purpose}。回复简洁、自然、符合上下文，不要编造事实，不要夸大承诺。"
+    user = f"上下文：{context or '无'}\n待处理内容：{prompt}\n请只输出最终{purpose}文本。"
+    headers={"Authorization":f"Bearer {api_key}","Content-Type":"application/json"}
+    if provider in {"mistral", "mistral_conversations", "mistral-agents"}:
+        agent_id=os.getenv("TG_AI_AGENT_ID", "").strip()
+        if not agent_id: raise RuntimeError("Mistral 模式未配置 TG_AI_AGENT_ID")
+        body={"agent_id":agent_id,"inputs":[{"role":"user","content":f"{system}\n\n{user}"}]}
+        version=os.getenv("TG_AI_AGENT_VERSION", "").strip()
+        if version: body["agent_version"]=int(version)
+        endpoint=f"{base_url}/conversations"
+    else:
+        body={"model":model,"messages":[{"role":"system","content":system},{"role":"user","content":user}],"temperature":0.7,"max_tokens":500}
+        endpoint=f"{base_url}/chat/completions"
+    async with httpx.AsyncClient(timeout=75.0) as client:
+        response=await client.post(endpoint,headers=headers,json=body)
+    if response.status_code >= 400: raise RuntimeError(f"AI 服务返回 {response.status_code}: {response.text[:500]}")
+    data=response.json()
+    if provider in {"mistral", "mistral_conversations", "mistral-agents"}:
+        content=""
+        entries=data.get("outputs",[]) or data.get("entries",[]) or data.get("conversation",{}).get("outputs",[])
+        for entry in reversed(entries):
+            if isinstance(entry,dict) and entry.get("type") in {"message.output","message"}:
+                value=entry.get("content","")
+                if isinstance(value,list): value="".join(x.get("text","") if isinstance(x,dict) else str(x) for x in value)
+                if value: content=str(value).strip(); break
+        content=content or str(data.get("output","") or data.get("content","")).strip()
+    else: content=data.get("choices",[{}])[0].get("message",{}).get("content","").strip()
+    if not content: raise RuntimeError("AI 返回空内容")
+    return content
+
+@app.get("/api/ai/settings")
+async def get_ai_settings(_: str = Depends(require_auth)):
+    provider=os.getenv("TG_AI_PROVIDER", "OpenAI-compatible")
+    return {"provider":provider,"base_url":os.getenv("TG_AI_BASE_URL", "https://api.openai.com/v1"),"model":os.getenv("TG_AI_MODEL", "gpt-4o-mini"),"agent_id":os.getenv("TG_AI_AGENT_ID", ""),"agent_version":os.getenv("TG_AI_AGENT_VERSION", "1"),"configured":bool(os.getenv("TG_AI_API_KEY", "").strip() or os.getenv("MISTRAL_API_KEY", "").strip())}
+
+class AISettingsRequest(BaseModel):
+    provider: str = "mistral_conversations"
+    base_url: str = "https://api.mistral.ai/v1"
+    model: str = ""
+    api_key: str = ""
+    agent_id: str = ""
+    agent_version: str = "1"
+
+@app.post("/api/ai/settings")
+async def save_ai_settings(payload: AISettingsRequest, _: str = Depends(require_admin)):
+    os.environ["TG_AI_PROVIDER"]=payload.provider.strip() or "mistral_conversations"
+    os.environ["TG_AI_BASE_URL"]=payload.base_url.strip().rstrip("/")
+    if payload.model.strip(): os.environ["TG_AI_MODEL"]=payload.model.strip()
+    if payload.api_key.strip(): os.environ["MISTRAL_API_KEY" if payload.provider.lower().startswith("mistral") else "TG_AI_API_KEY"]=payload.api_key.strip()
+    if payload.agent_id.strip(): os.environ["TG_AI_AGENT_ID"]=payload.agent_id.strip()
+    if payload.agent_version.strip(): os.environ["TG_AI_AGENT_VERSION"]=payload.agent_version.strip()
+    return {"status":"success","configured":True,"note":"当前实例已生效；Railway 重启后请同时配置环境变量以持久保存"}
+
+class AIAutomationRequest(BaseModel):
+    account_name: str
+    prompt: str = "请自然、简洁地回复对方"
+    channels: List[str] = []
+    delay_seconds: int = 5
+
+@app.post("/api/ai/reply/{account_name}/start")
+async def start_ai_reply(account_name: str, payload: AIAutomationRequest, _: str = Depends(require_admin)):
+    validate_account_name(account_name)
+    if account_name in ACTIVE_AI_REPLIES: return {"status":"success","message":"AI 自动回复已在运行"}
+    client=get_client_for_account(account_name); await client.start()
+    async def callback(text, user_info): return await _generate_ai_text(text, str(user_info), "自动回复")
+    responder=TelegramAutoResponder(client, {}, ai_callback=callback); responder.start()
+    ACTIVE_AI_REPLIES[account_name]={"client":client,"responder":responder}
+    return {"status":"success","account_name":account_name,"message":"AI 自动回复已启动"}
+
+@app.post("/api/ai/reply/{account_name}/stop")
+async def stop_ai_reply(account_name: str, _: str = Depends(require_admin)):
+    runtime=ACTIVE_AI_REPLIES.pop(account_name,None)
+    if runtime: await runtime["client"].disconnect()
+    return {"status":"success","message":"AI 自动回复已停止"}
+
+@app.post("/api/ai/comment/{account_name}/start")
+async def start_ai_comment(account_name: str, payload: AIAutomationRequest, _: str = Depends(require_admin)):
+    validate_account_name(account_name)
+    if not payload.channels: raise HTTPException(status_code=400, detail="至少填写一个频道")
+    if account_name in ACTIVE_AI_COMMENTS: return {"status":"success","message":"AI 评论已在运行"}
+    client=get_client_for_account(account_name); await client.start()
+    async def callback(post): return await _generate_ai_text(post, payload.prompt, "频道评论")
+    commenter=ChannelAutoCommenter(client,payload.channels,"",delay_seconds=max(0,payload.delay_seconds),ai_callback=callback)
+    task=asyncio.create_task(commenter.start_monitoring())
+    ACTIVE_AI_COMMENTS[account_name]={"client":client,"task":task}
+    return {"status":"success","account_name":account_name,"message":"AI 评论监听已启动"}
+
+@app.post("/api/ai/comment/{account_name}/stop")
+async def stop_ai_comment(account_name: str, _: str = Depends(require_admin)):
+    runtime=ACTIVE_AI_COMMENTS.pop(account_name,None)
+    if runtime:
+        runtime["task"].cancel(); await runtime["client"].disconnect()
+    return {"status":"success","message":"AI 评论监听已停止"}
+
 @app.get("/healthz")
 async def healthz():
     return {"status": "ok", "service": "telegram-control-plane"}
@@ -310,6 +413,8 @@ DEFAULT_API_HASH = os.getenv("TG_API_HASH", "")
 ACTIVE_INTERCEPTOR = None
 ACTIVE_POSTER = None
 ACTIVE_MONITORS: Dict[str, Dict[str, Any]] = {}
+ACTIVE_AI_REPLIES: Dict[str, Dict[str, Any]] = {}
+ACTIVE_AI_COMMENTS: Dict[str, Dict[str, Any]] = {}
 LOGIN_RUNTIMES: Dict[str, Dict[str, Any]] = {}
 
 # ================================
