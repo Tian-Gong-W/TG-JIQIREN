@@ -35,11 +35,23 @@
     * { box-sizing: border-box; }
     body {
       font-family: "Noto Sans SC", "Outfit", system-ui, -apple-system, sans-serif;
-      background: #00c5c8 linear-gradient(180deg, #00c5c8 0%, #00b4b7 100%);
+      background-color: #081c35;
+      background-image: linear-gradient(rgba(0, 29, 54, 0.34), rgba(0, 76, 96, 0.42)), url('/assets/yun-ding.jpg');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
       min-height: 100vh;
       color: #1e293b;
       margin: 0;
       padding: 0;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        background-position: 58% center;
+        background-attachment: scroll;
+      }
     }
 
     /* 雲頂天宮 顶部胶囊徽章 */
