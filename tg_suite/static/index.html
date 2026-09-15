@@ -399,6 +399,39 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* 可读性增强：功能标题、说明和操作按钮统一放大一档 */
+    .mini-func-card h3 { font-size: 14px; line-height: 1.35; }
+    .mini-func-card .text-\[11\.5px\] { font-size: 12px; line-height: 1.35; }
+    .btn-action-green { font-size: 12px; padding: 6px 11px; }
+    .chip-blue, .chip-teal, .chip-orange, .chip-purple { font-size: 10px; padding: 2px 7px; }
+    .module-popover-panel { width: min(94vw, 680px); }
+
+    @media (max-width: 640px) {
+      body { min-width: 0; overflow-x: hidden; }
+      header { padding-left: 12px; padding-right: 12px; }
+      .badge-yunding { padding: 7px 15px; font-size: 14px; letter-spacing: 2px; }
+      .search-capsule { max-width: none; padding: 9px 13px; }
+      .hero-title { font-size: clamp(1.55rem, 8vw, 2.15rem); line-height: 1.25; letter-spacing: 1px; }
+      .category-capsule-bar { border-radius: 20px; padding: 5px; gap: 3px; }
+      .cat-btn { flex: 1 1 30%; padding: 9px 5px; font-size: 14px; }
+      .module-nav-row { width: calc(100% - 20px); gap: 10px; margin-bottom: 12px; }
+      .account-refresh-btn, .account-online-pill, .account-add-btn { font-size: 14px; }
+      .account-status-actions { width: 100%; justify-content: space-between; gap: 8px; }
+      .module-popover { padding: 10px; align-items: flex-start; }
+      .module-popover-panel { width: 100%; max-height: 86vh; padding: 10px; border-radius: 20px; margin-top: 8vh; }
+      .module-popover-header { padding: 3px 4px 9px 6px; }
+      .module-popover-header h3 { font-size: 20px; }
+      .module-popover-close { width: 34px; height: 34px; font-size: 24px; }
+      .module-popover-body { gap: 8px; }
+      .mini-func-card { min-height: 56px; padding: 8px 10px 8px 14px; gap: 8px; }
+      .mini-func-card h3 { font-size: 15px; }
+      .mini-func-card .text-\[11\.5px\] { font-size: 12px; }
+      .btn-action-green { flex: 0 0 auto; font-size: 12px; padding: 7px 10px; }
+      .chip-blue, .chip-teal, .chip-orange, .chip-purple { font-size: 10px; }
+      .modal-content-box { max-height: 92vh; border-radius: 18px; padding: 14px !important; }
+      .data-table { font-size: 12px; display: block; overflow-x: auto; white-space: nowrap; }
+    }
   </style>
 </head>
 <body class="pb-16">
