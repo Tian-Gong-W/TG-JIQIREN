@@ -55,8 +55,12 @@ except ImportError:
     pass
 
 security = HTTPBearer(auto_error=False)
-AUTH_DISABLED = os.getenv("TG_AUTH_DISABLED", "false").lower() == "true"
 TG_ENV = os.getenv("TG_ENV", "development").lower()
+# 生产环境禁止通过误配置关闭鉴权；开发环境才允许显式免鉴权。
+AUTH_DISABLED = (
+    os.getenv("TG_AUTH_DISABLED", "false").lower() == "true"
+    and TG_ENV != "production"
+)
 ADMIN_API_KEY = os.getenv("TG_ADMIN_API_KEY", "")
 OPERATOR_API_KEY = os.getenv("TG_OPERATOR_API_KEY", "")
 ADMIN_USERNAME = os.getenv("TG_ADMIN_USERNAME", "admin")
