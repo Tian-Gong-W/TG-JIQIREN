@@ -56,11 +56,8 @@ except ImportError:
 
 security = HTTPBearer(auto_error=False)
 TG_ENV = os.getenv("TG_ENV", "development").lower()
-# 生产环境禁止通过误配置关闭鉴权；开发环境才允许显式免鉴权。
-AUTH_DISABLED = (
-    os.getenv("TG_AUTH_DISABLED", "false").lower() == "true"
-    and TG_ENV != "production"
-)
+# 仅在部署者明确设置 TG_AUTH_DISABLED=true 时开放公共控制台；默认仍保持鉴权。
+AUTH_DISABLED = os.getenv("TG_AUTH_DISABLED", "false").lower() == "true"
 ADMIN_API_KEY = os.getenv("TG_ADMIN_API_KEY", "")
 OPERATOR_API_KEY = os.getenv("TG_OPERATOR_API_KEY", "")
 ADMIN_USERNAME = os.getenv("TG_ADMIN_USERNAME", "admin")
