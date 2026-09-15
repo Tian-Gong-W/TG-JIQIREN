@@ -147,8 +147,8 @@
     .module-nav-row {
       width: min(calc(100% - 32px), 1150px);
       margin: 0 auto 16px;
-      display: grid;
-      grid-template-columns: minmax(300px, 1fr) minmax(420px, 760px) minmax(230px, 1fr);
+      display: flex;
+      justify-content: center;
       align-items: center;
       gap: 18px;
     }
@@ -192,12 +192,7 @@
     }
     .account-add-btn:hover { color: rgba(255,255,255,0.78); }
     @media (max-width: 1200px) {
-      .module-nav-row {
-        grid-template-columns: 1fr;
-        gap: 8px;
-      }
-      .account-quick-actions { justify-self: start; }
-      .account-status-actions { justify-self: end; }
+      .module-nav-row { gap: 8px; }
     }
     @media (max-width: 640px) {
       .module-nav-row { width: calc(100% - 24px); }
@@ -549,28 +544,28 @@
   <!-- 3. 五个父模块与账号状态同排 -->
   <!-- ========================================== -->
   <div class="module-nav-row">
-    <div class="account-quick-actions">
-      <button id="sectionTitle" type="button" onclick="refreshAccountStatus()" class="account-refresh-btn">↻ 刷新账号状态</button>
-      <button type="button" onclick="openModal('modal-phone-login')" class="account-phone-btn">＋ 手机号登录</button>
-    </div>
     <div class="category-capsule-bar flex items-center flex-wrap justify-center gap-1">
       <button onclick="filterCategory('accounts', this)" class="cat-btn active">AI-重选</button>
       <button onclick="filterCategory('monitor', this)" class="cat-btn">商机雷达</button>
       <button onclick="filterCategory('data', this)" class="cat-btn">数据中心</button>
       <button onclick="filterCategory('settings', this)" class="cat-btn">系统设置</button>
     </div>
-    <div class="account-status-actions">
-      <span class="account-online-pill">在线账号: <span id="statActiveAccounts" class="font-bold text-yellow-300 font-mono">0</span> / <span id="statTotalAccounts" class="font-mono">0</span></span>
-      <button type="button" onclick="openModal('modal-batch-import')" class="account-add-btn">＋ 加入账号</button>
-    </div>
   </div>
 
   <!-- 已登录账号直接展示在主页面 -->
   <section class="inline-account-panel" aria-label="已登录账号">
     <div class="flex items-center justify-between gap-3 mb-2">
-      <div class="flex items-center gap-2 text-white"><strong>已登录账号</strong><span id="inlineAccountsTotal" class="text-xs opacity-80">0 条</span></div>
-      <button type="button" onclick="openModal('modal-batch-import')" class="account-add-btn">＋ 导入 Session</button>
+      <div class="account-quick-actions">
+        <button id="sectionTitle" type="button" onclick="refreshAccountStatus()" class="account-refresh-btn">↻ 刷新账号状态</button>
+        <button type="button" onclick="openModal('modal-phone-login')" class="account-phone-btn">＋ 手机号登录</button>
+      </div>
+      <div class="account-status-actions">
+        <span class="account-online-pill">在线账号: <span id="statActiveAccounts" class="font-bold text-yellow-300 font-mono">0</span> / <span id="statTotalAccounts" class="font-mono">0</span></span>
+        <button type="button" onclick="openModal('modal-batch-import')" class="account-add-btn">＋ 加入账号</button>
+        <button type="button" onclick="openModal('modal-batch-import')" class="account-add-btn">＋ 导入 Session</button>
+      </div>
     </div>
+    <div class="flex items-center gap-2 text-white mb-2"><strong>已登录账号</strong><span id="inlineAccountsTotal" class="text-xs opacity-80">0 条</span></div>
     <div class="overflow-x-auto rounded-lg bg-white/90">
       <table class="data-table"><thead><tr><th>ID</th><th>手机号 / 标识</th><th>格式</th><th>DC</th><th>状态</th><th class="text-right">操作</th></tr></thead><tbody id="inlineAccountsTableBody"><tr><td colspan="6" class="text-center py-4 text-slate-500 text-xs">正在读取账号...</td></tr></tbody></table>
     </div>
