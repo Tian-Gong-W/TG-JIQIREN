@@ -349,6 +349,11 @@ class AIAutomationRequest(BaseModel):
     prompt: str = "请自然、简洁地回复对方"
     channels: List[str] = []
     delay_seconds: int = 5
+    keywords: List[str] = []
+    cooldown_seconds: int = 60
+    max_comments_per_hour: int = 12
+    max_retries: int = 3
+    blocked_terms: List[str] = []
 
 @app.post("/api/ai/reply/{account_name}/start")
 async def start_ai_reply(account_name: str, payload: AIAutomationRequest, _: str = Depends(require_admin)):
@@ -373,7 +378,12 @@ async def start_ai_comment(account_name: str, payload: AIAutomationRequest, _: s
     if account_name in ACTIVE_AI_COMMENTS: return {"status":"success","message":"AI 评论已在运行"}
     client=get_client_for_account(account_name); await client.start()
     async def callback(post): return await _generate_ai_text(post, payload.prompt, "频道评论")
-    commenter=ChannelAutoCommenter(client,payload.channels,"",delay_seconds=max(0,payload.delay_seconds),ai_callback=callback)
+    commenter=ChannelAutoCommenter(
+        client, payload.channels, "", delay_seconds=max(0, payload.delay_seconds), ai_callback=callback,
+        keywords=payload.keywords, cooldown_seconds=max(0, payload.cooldown_seconds),
+        max_comments_per_hour=max(1, min(payload.max_comments_per_hour, 100)),
+        max_retries=max(1, min(payload.max_retries, 5)), blocked_terms=payload.blocked_terms
+    )
     task=asyncio.create_task(commenter.start_monitoring())
     ACTIVE_AI_COMMENTS[account_name]={"client":client,"task":task}
     return {"status":"success","account_name":account_name,"message":"AI 评论监听已启动"}
